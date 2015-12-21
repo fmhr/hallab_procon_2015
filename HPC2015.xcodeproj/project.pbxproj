@@ -1,0 +1,356 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		7B41927A1C118C4C00147C65 /* Answer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B4192681C118C4C00147C65 /* Answer.cpp */; };
+		7B41927B1C118C4C00147C65 /* HPCField.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B4192691C118C4C00147C65 /* HPCField.cpp */; };
+		7B41927C1C118C4C00147C65 /* HPCGame.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B41926A1C118C4C00147C65 /* HPCGame.cpp */; };
+		7B41927D1C118C4C00147C65 /* HPCItem.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B41926B1C118C4C00147C65 /* HPCItem.cpp */; };
+		7B41927E1C118C4C00147C65 /* HPCItemCollection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B41926C1C118C4C00147C65 /* HPCItemCollection.cpp */; };
+		7B41927F1C118C4C00147C65 /* HPCItemGroup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B41926D1C118C4C00147C65 /* HPCItemGroup.cpp */; };
+		7B4192801C118C4C00147C65 /* HPCLevelDesigner.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B41926E1C118C4C00147C65 /* HPCLevelDesigner.cpp */; };
+		7B4192811C118C4C00147C65 /* HPCMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B41926F1C118C4C00147C65 /* HPCMain.cpp */; };
+		7B4192821C118C4C00147C65 /* HPCMath.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B4192701C118C4C00147C65 /* HPCMath.cpp */; };
+		7B4192831C118C4C00147C65 /* HPCPos.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B4192711C118C4C00147C65 /* HPCPos.cpp */; };
+		7B4192841C118C4C00147C65 /* HPCRandom.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B4192721C118C4C00147C65 /* HPCRandom.cpp */; };
+		7B4192851C118C4C00147C65 /* HPCRecord.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B4192731C118C4C00147C65 /* HPCRecord.cpp */; };
+		7B4192861C118C4C00147C65 /* HPCRecordStage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B4192741C118C4C00147C65 /* HPCRecordStage.cpp */; };
+		7B4192871C118C4C00147C65 /* HPCSimulation.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B4192751C118C4C00147C65 /* HPCSimulation.cpp */; };
+		7B4192881C118C4C00147C65 /* HPCStage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B4192761C118C4C00147C65 /* HPCStage.cpp */; };
+		7B4192891C118C4C00147C65 /* HPCTimer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B4192771C118C4C00147C65 /* HPCTimer.cpp */; };
+		7B41928A1C118C4C00147C65 /* HPCTruck.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B4192781C118C4C00147C65 /* HPCTruck.cpp */; };
+		7B41928B1C118C4C00147C65 /* HPCTurnResult.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 7B4192791C118C4C00147C65 /* HPCTurnResult.cpp */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		7B4192421C118B3A00147C65 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		7B4192441C118B3A00147C65 /* HPC2015 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = HPC2015; sourceTree = BUILT_PRODUCTS_DIR; };
+		7B41924E1C118C4C00147C65 /* HPCAction.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HPCAction.hpp; sourceTree = "<group>"; };
+		7B41924F1C118C4C00147C65 /* HPCAnswer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HPCAnswer.hpp; sourceTree = "<group>"; };
+		7B4192501C118C4C00147C65 /* HPCArrayNum.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HPCArrayNum.hpp; sourceTree = "<group>"; };
+		7B4192511C118C4C00147C65 /* HPCAssert.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HPCAssert.hpp; sourceTree = "<group>"; };
+		7B4192521C118C4C00147C65 /* HPCCommon.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HPCCommon.hpp; sourceTree = "<group>"; };
+		7B4192531C118C4C00147C65 /* HPCField.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HPCField.hpp; sourceTree = "<group>"; };
+		7B4192541C118C4C00147C65 /* HPCGame.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HPCGame.hpp; sourceTree = "<group>"; };
+		7B4192551C118C4C00147C65 /* HPCItem.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HPCItem.hpp; sourceTree = "<group>"; };
+		7B4192561C118C4C00147C65 /* HPCItemCollection.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HPCItemCollection.hpp; sourceTree = "<group>"; };
+		7B4192571C118C4C00147C65 /* HPCItemGroup.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HPCItemGroup.hpp; sourceTree = "<group>"; };
+		7B4192581C118C4C00147C65 /* HPCLevelDesigner.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HPCLevelDesigner.hpp; sourceTree = "<group>"; };
+		7B4192591C118C4C00147C65 /* HPCMath.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HPCMath.hpp; sourceTree = "<group>"; };
+		7B41925A1C118C4C00147C65 /* HPCParameter.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HPCParameter.hpp; sourceTree = "<group>"; };
+		7B41925B1C118C4C00147C65 /* HPCPos.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HPCPos.hpp; sourceTree = "<group>"; };
+		7B41925C1C118C4C00147C65 /* HPCPrint.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HPCPrint.hpp; sourceTree = "<group>"; };
+		7B41925D1C118C4C00147C65 /* HPCRandom.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HPCRandom.hpp; sourceTree = "<group>"; };
+		7B41925E1C118C4C00147C65 /* HPCRecord.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HPCRecord.hpp; sourceTree = "<group>"; };
+		7B41925F1C118C4C00147C65 /* HPCRecordStage.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HPCRecordStage.hpp; sourceTree = "<group>"; };
+		7B4192601C118C4C00147C65 /* HPCSimulation.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HPCSimulation.hpp; sourceTree = "<group>"; };
+		7B4192611C118C4C00147C65 /* HPCStage.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HPCStage.hpp; sourceTree = "<group>"; };
+		7B4192621C118C4C00147C65 /* HPCStageState.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HPCStageState.hpp; sourceTree = "<group>"; };
+		7B4192631C118C4C00147C65 /* HPCTimer.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HPCTimer.hpp; sourceTree = "<group>"; };
+		7B4192641C118C4C00147C65 /* HPCTransportState.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HPCTransportState.hpp; sourceTree = "<group>"; };
+		7B4192651C118C4C00147C65 /* HPCTruck.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HPCTruck.hpp; sourceTree = "<group>"; };
+		7B4192661C118C4C00147C65 /* HPCTurnResult.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HPCTurnResult.hpp; sourceTree = "<group>"; };
+		7B4192671C118C4C00147C65 /* HPCTypes.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = HPCTypes.hpp; sourceTree = "<group>"; };
+		7B4192681C118C4C00147C65 /* Answer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Answer.cpp; sourceTree = "<group>"; };
+		7B4192691C118C4C00147C65 /* HPCField.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HPCField.cpp; sourceTree = "<group>"; };
+		7B41926A1C118C4C00147C65 /* HPCGame.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HPCGame.cpp; sourceTree = "<group>"; };
+		7B41926B1C118C4C00147C65 /* HPCItem.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HPCItem.cpp; sourceTree = "<group>"; };
+		7B41926C1C118C4C00147C65 /* HPCItemCollection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HPCItemCollection.cpp; sourceTree = "<group>"; };
+		7B41926D1C118C4C00147C65 /* HPCItemGroup.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HPCItemGroup.cpp; sourceTree = "<group>"; };
+		7B41926E1C118C4C00147C65 /* HPCLevelDesigner.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HPCLevelDesigner.cpp; sourceTree = "<group>"; };
+		7B41926F1C118C4C00147C65 /* HPCMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HPCMain.cpp; sourceTree = "<group>"; };
+		7B4192701C118C4C00147C65 /* HPCMath.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HPCMath.cpp; sourceTree = "<group>"; };
+		7B4192711C118C4C00147C65 /* HPCPos.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HPCPos.cpp; sourceTree = "<group>"; };
+		7B4192721C118C4C00147C65 /* HPCRandom.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HPCRandom.cpp; sourceTree = "<group>"; };
+		7B4192731C118C4C00147C65 /* HPCRecord.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HPCRecord.cpp; sourceTree = "<group>"; };
+		7B4192741C118C4C00147C65 /* HPCRecordStage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HPCRecordStage.cpp; sourceTree = "<group>"; };
+		7B4192751C118C4C00147C65 /* HPCSimulation.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HPCSimulation.cpp; sourceTree = "<group>"; };
+		7B4192761C118C4C00147C65 /* HPCStage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HPCStage.cpp; sourceTree = "<group>"; };
+		7B4192771C118C4C00147C65 /* HPCTimer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HPCTimer.cpp; sourceTree = "<group>"; };
+		7B4192781C118C4C00147C65 /* HPCTruck.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HPCTruck.cpp; sourceTree = "<group>"; };
+		7B4192791C118C4C00147C65 /* HPCTurnResult.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HPCTurnResult.cpp; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		7B4192411C118B3A00147C65 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		7B41923B1C118B3A00147C65 = {
+			isa = PBXGroup;
+			children = (
+				7B41924E1C118C4C00147C65 /* HPCAction.hpp */,
+				7B41924F1C118C4C00147C65 /* HPCAnswer.hpp */,
+				7B4192501C118C4C00147C65 /* HPCArrayNum.hpp */,
+				7B4192511C118C4C00147C65 /* HPCAssert.hpp */,
+				7B4192521C118C4C00147C65 /* HPCCommon.hpp */,
+				7B4192531C118C4C00147C65 /* HPCField.hpp */,
+				7B4192541C118C4C00147C65 /* HPCGame.hpp */,
+				7B4192551C118C4C00147C65 /* HPCItem.hpp */,
+				7B4192561C118C4C00147C65 /* HPCItemCollection.hpp */,
+				7B4192571C118C4C00147C65 /* HPCItemGroup.hpp */,
+				7B4192581C118C4C00147C65 /* HPCLevelDesigner.hpp */,
+				7B4192591C118C4C00147C65 /* HPCMath.hpp */,
+				7B41925A1C118C4C00147C65 /* HPCParameter.hpp */,
+				7B41925B1C118C4C00147C65 /* HPCPos.hpp */,
+				7B41925C1C118C4C00147C65 /* HPCPrint.hpp */,
+				7B41925D1C118C4C00147C65 /* HPCRandom.hpp */,
+				7B41925E1C118C4C00147C65 /* HPCRecord.hpp */,
+				7B41925F1C118C4C00147C65 /* HPCRecordStage.hpp */,
+				7B4192601C118C4C00147C65 /* HPCSimulation.hpp */,
+				7B4192611C118C4C00147C65 /* HPCStage.hpp */,
+				7B4192621C118C4C00147C65 /* HPCStageState.hpp */,
+				7B4192631C118C4C00147C65 /* HPCTimer.hpp */,
+				7B4192641C118C4C00147C65 /* HPCTransportState.hpp */,
+				7B4192651C118C4C00147C65 /* HPCTruck.hpp */,
+				7B4192661C118C4C00147C65 /* HPCTurnResult.hpp */,
+				7B4192671C118C4C00147C65 /* HPCTypes.hpp */,
+				7B4192681C118C4C00147C65 /* Answer.cpp */,
+				7B4192691C118C4C00147C65 /* HPCField.cpp */,
+				7B41926A1C118C4C00147C65 /* HPCGame.cpp */,
+				7B41926B1C118C4C00147C65 /* HPCItem.cpp */,
+				7B41926C1C118C4C00147C65 /* HPCItemCollection.cpp */,
+				7B41926D1C118C4C00147C65 /* HPCItemGroup.cpp */,
+				7B41926E1C118C4C00147C65 /* HPCLevelDesigner.cpp */,
+				7B41926F1C118C4C00147C65 /* HPCMain.cpp */,
+				7B4192701C118C4C00147C65 /* HPCMath.cpp */,
+				7B4192711C118C4C00147C65 /* HPCPos.cpp */,
+				7B4192721C118C4C00147C65 /* HPCRandom.cpp */,
+				7B4192731C118C4C00147C65 /* HPCRecord.cpp */,
+				7B4192741C118C4C00147C65 /* HPCRecordStage.cpp */,
+				7B4192751C118C4C00147C65 /* HPCSimulation.cpp */,
+				7B4192761C118C4C00147C65 /* HPCStage.cpp */,
+				7B4192771C118C4C00147C65 /* HPCTimer.cpp */,
+				7B4192781C118C4C00147C65 /* HPCTruck.cpp */,
+				7B4192791C118C4C00147C65 /* HPCTurnResult.cpp */,
+				7B4192451C118B3A00147C65 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		7B4192451C118B3A00147C65 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7B4192441C118B3A00147C65 /* HPC2015 */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		7B4192431C118B3A00147C65 /* HPC2015 */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7B41924B1C118B3A00147C65 /* Build configuration list for PBXNativeTarget "HPC2015" */;
+			buildPhases = (
+				7B4192401C118B3A00147C65 /* Sources */,
+				7B4192411C118B3A00147C65 /* Frameworks */,
+				7B4192421C118B3A00147C65 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HPC2015;
+			productName = HPC2015;
+			productReference = 7B4192441C118B3A00147C65 /* HPC2015 */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		7B41923C1C118B3A00147C65 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0710;
+				ORGANIZATIONNAME = "HAL Laboratory, Inc.";
+				TargetAttributes = {
+					7B4192431C118B3A00147C65 = {
+						CreatedOnToolsVersion = 7.1.1;
+					};
+				};
+			};
+			buildConfigurationList = 7B41923F1C118B3A00147C65 /* Build configuration list for PBXProject "HPC2015" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 7B41923B1C118B3A00147C65;
+			productRefGroup = 7B4192451C118B3A00147C65 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				7B4192431C118B3A00147C65 /* HPC2015 */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		7B4192401C118B3A00147C65 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7B4192841C118C4C00147C65 /* HPCRandom.cpp in Sources */,
+				7B41927E1C118C4C00147C65 /* HPCItemCollection.cpp in Sources */,
+				7B41927C1C118C4C00147C65 /* HPCGame.cpp in Sources */,
+				7B4192831C118C4C00147C65 /* HPCPos.cpp in Sources */,
+				7B4192871C118C4C00147C65 /* HPCSimulation.cpp in Sources */,
+				7B4192861C118C4C00147C65 /* HPCRecordStage.cpp in Sources */,
+				7B4192851C118C4C00147C65 /* HPCRecord.cpp in Sources */,
+				7B41927B1C118C4C00147C65 /* HPCField.cpp in Sources */,
+				7B41927D1C118C4C00147C65 /* HPCItem.cpp in Sources */,
+				7B4192891C118C4C00147C65 /* HPCTimer.cpp in Sources */,
+				7B4192811C118C4C00147C65 /* HPCMain.cpp in Sources */,
+				7B4192821C118C4C00147C65 /* HPCMath.cpp in Sources */,
+				7B41927F1C118C4C00147C65 /* HPCItemGroup.cpp in Sources */,
+				7B41928A1C118C4C00147C65 /* HPCTruck.cpp in Sources */,
+				7B41927A1C118C4C00147C65 /* Answer.cpp in Sources */,
+				7B4192801C118C4C00147C65 /* HPCLevelDesigner.cpp in Sources */,
+				7B4192881C118C4C00147C65 /* HPCStage.cpp in Sources */,
+				7B41928B1C118C4C00147C65 /* HPCTurnResult.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		7B4192491C118B3A00147C65 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		7B41924A1C118B3A00147C65 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.11;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		7B41924C1C118B3A00147C65 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		7B41924D1C118B3A00147C65 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		7B41923F1C118B3A00147C65 /* Build configuration list for PBXProject "HPC2015" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7B4192491C118B3A00147C65 /* Debug */,
+				7B41924A1C118B3A00147C65 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7B41924B1C118B3A00147C65 /* Build configuration list for PBXNativeTarget "HPC2015" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7B41924C1C118B3A00147C65 /* Debug */,
+				7B41924D1C118B3A00147C65 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 7B41923C1C118B3A00147C65 /* Project object */;
+}
