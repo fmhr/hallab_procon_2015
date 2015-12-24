@@ -25,7 +25,7 @@ namespace hpc {
     int stageNum;
     vector<queue<Action>> rAct;
     vector<vector<int>> rBag;
-//    ===============================================================================================
+//    ==============================================================================================
     
     const int x[]={-1,1,0,0};
     const int y[]={0,0,-1,+1};
@@ -33,10 +33,10 @@ namespace hpc {
     const Action reverse_a[]={Action_MoveRight,Action_MoveLeft,Action_MoveUp,Action_MoveDown};
     
     class nStage{
-    public:
         vector<vector<int>> bag;
         vector<vector<vector<int>>> allMap;
-        std::vector<std::queue<Action>> act;
+        vector<queue<Action>> act;
+    public:
         nStage();
         const Stage *aStage;
         void getStage(const Stage& aStageSub);
@@ -51,8 +51,9 @@ namespace hpc {
     };
     
     nStage::nStage()
-    : bag(5), act(4),
-    allMap(20,vector<vector<int>>(100,vector<int>(100)))
+    : bag(5),
+    allMap(20,vector<vector<int>>(100,vector<int>(100))),
+     act(4)
     {}
     
     void nStage::getStage(const Stage& aStageSub){
@@ -78,12 +79,12 @@ namespace hpc {
         //        初期の0~3時間のをつめこむ
 //        各時間の重量を数える
         for (int i=0; i<4; ++i) {
-            for (int j=0; j<bag[i].size(); ++j) {
+            for (int j=0; j<int(bag[i].size()); ++j) {
                 w[i] += aStage->items().operator[](bag[i][j]).weight();
             }
         }
 //            bag[4]の荷物をうつす
-        for (int j = 0; j<bag[4].size(); ++j) {
+        for (int j = 0; j<int(bag[4].size()); ++j) {
             for (int k=0; k<4; ++k) {
                 if (w[k]+aStage->items().operator[](bag[4][j]).weight()<15) {
                     w[k] += aStage->items().operator[](bag[4][j]).weight();
@@ -100,8 +101,8 @@ namespace hpc {
             if (bag[i].size()>0) {
                 rootFromStart(i, bag[i][0]);
             }
-            if (bag[i].size()>1) {
-                for (int j = 0; j<bag[i].size()-1; ++j) {
+            if (int(bag[i].size())>1) {
+                for (int j = 0; j<int(bag[i].size()-1); ++j) {
                     rootAB(i, bag[i][j+1], aStage->items().operator[](bag[i][j]).destination().x,
                              aStage->items().operator[](bag[i][j]).destination().y);
                 }
@@ -471,7 +472,7 @@ namespace hpc {
         HPC_PRINT("debug++++++++++++++++++++++++++++++++++++++++++\n");
         for (int i=0; i<4; i++) {
             HPC_PRINT("時間帯: %d 荷物の数: %lu   (",i,rBag[i].size());
-            for (int j = 0; j < rBag[i].size(); ++j) {
+            for (int j = 0; j < int(rBag[i].size()); ++j) {
                 HPC_PRINT("%d  ",rBag[i][j]);
             }
             HPC_PRINT(")\n");
@@ -504,7 +505,7 @@ namespace hpc {
         HPC_PRINT("つめ込み作業===============================\n");
         HPC_PRINT("time: %d\n",aStage.period());
         
-        for (int i=0; i<rBag[aStage.period()].size(); ++i) {
+        for (int i=0; i<int(rBag[aStage.period()].size()); ++i) {
             if (aStage.getTransportState(rBag[aStage.period()][i])==TransportState_NotTransported){
                 aItemGroup.addItem(rBag[aStage.period()][i]);
                 HPC_PRINT("詰め込み荷物: %d\n", rBag[aStage.period()][i]);
@@ -537,11 +538,11 @@ namespace hpc {
 //            }
 //        }
 //        
-        Action a = rAct[aStage.period()].front();
+        Action ac = rAct[aStage.period()].front();
         rAct[aStage.period()].pop();
-        HPC_PRINT("time: %d  Action: %u  %dx%d 残りの荷物: ",aStage.period(),a,aStage.truck().pos().x,aStage.truck().pos().y);
-        cout<<bitset<32>(aStage.truck().itemGroup().getBits())<<endl;
-        return a;
+        HPC_PRINT("time: %d  Action: %u  %dx%d 残りの荷物: ",aStage.period(),ac,aStage.truck().pos().x,aStage.truck().pos().y);
+//        cout<<bitset<32>(aStage.truck().itemGroup().getBits())<<endl;
+        return ac;
     }
 
     //------------------------------------------------------------------------------
