@@ -37,6 +37,7 @@ namespace hpc {
         void ans();                                     // rAct, rBag にコピーする
     private:
         void RePutBag();                                // bag[時間帯]の最適化
+        void RePutBag();
     };
     
     nStage::nStage()
@@ -66,26 +67,24 @@ namespace hpc {
     }
     
     void nStage::RePutBag(){
-        //          時間未指定bag[4]の荷物をbag[0~3]に振り分ける
-        std::vector<int> w (4);
-        //        初期の0~3時間のをつめこむ
-        //        各時間の重量を数える
+        vector<int> w(4);
         for (int i=0; i<4; ++i) {
             for (int j=0; j<int(bag[i].size()); ++j) {
                 w[i] += aStage->items().operator[](bag[i][j]).weight();
             }
         }
-        //            bag[4]の荷物をうつす
-        for (int j = 0; j<int(bag[4].size()); ++j) {
-            for (int k=0; k<4; ++k) {
-                if (w[k]+aStage->items().operator[](bag[4][j]).weight()<15) {
-                    w[k] += aStage->items().operator[](bag[4][j]).weight();
-                    bag[k].push_back(bag[4][j]);
-                    break;
+        for (int i=0; i<int(bag[4].size()); ++i) {
+            int min_bag = 0;
+            int min_bag_w = 100;
+            for (int j=0; j<4; ++j) {
+                if (min_bag_w>w[j]){
+                    min_bag_w = w[j];
+                    min_bag = j;
                 }
             }
+            w[min_bag] += aStage->items().operator[](bag[4][i]).weight();
+            bag[min_bag].push_back(bag[4][i]);
         }
-        
     }
     
     //    (暫定)　かごの順番で回るためのActをつめる
