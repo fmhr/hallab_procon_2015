@@ -5,13 +5,16 @@
 #include "stack"
 #include "iostream"
 #include "bitset"
-#include <algorithm>
+#include "algorithm"
+#include "unordered_map"
 
 using namespace std;
 
 namespace hpc {
     
-    int stageNum;                // ステージナンバー
+    int stag_i;                // ステージナンバー
+    int successd_stage_n;
+    int failed_stage_n;
     vector<queue<Action>> rAct;  // rAct[時間帯] = アクションリスト　nStage.act をコピーする
     vector<vector<int>> rBag;    // rBag[時間帯] = 荷物リスト        nStage.bag をコピーする
     const int x[]={-1,1,0,0};    // 上下左右のActionの選択用
@@ -24,6 +27,7 @@ namespace hpc {
         vector<vector<vector<int>>> allMap;  // allMap[基準点][y][x] = Pos(基準点)から(x,y)までの距離
         vector<vector<int>> bag;             // bag[時間帯] = 荷物リスト
         vector<queue<Action>> act;           // act[時間帯] = アクションリスト
+        unordered_map <string, string>mp;
     public:
         nStage();                                       // 初期化? nStage::nStage()
         const Stage *aStage;                            // nStage内でaStageを参照するためのもの
@@ -38,8 +42,15 @@ namespace hpc {
         void ReOrderBagRoot();                          // bag[時間帯]の順番はそのままルートになる　0番目(重い荷物) N番目(近い荷物)
         void putAct();                                  // 配送リストからrootFromStart(), rootAB(), rootToStart()を呼び出す
         void ans();                                     // rAct, rBag にコピーする
-        int ItemWeight(int time,int item_index);
-        int DistanceAB(int itemA_index, int itemB_index);
+        int ItemWeightBagIndex(int time,int bag_index);
+        int ItemWeight(int item_index);
+        int DistanceAB(int a_index, int itemB_index);
+        int DistanceAxy(int a_index, int x, int y);
+        int FuelConsumption(vector<int> root);
+        void GreedyBag();                                 // bagの中の荷物を貪欲に並び替える
+        void Greedy();                                    // bag[-1]の振り分けの貪欲
+        long long Pow(int x, int y);
+        string TimeOrderByList();
     };
     
     nStage::nStage()
@@ -94,7 +105,7 @@ namespace hpc {
             // 重さソート
             for (int j=0; j<int(bag[i].size()); ++j) {
                 for (int k=j+1; k<int(bag[i].size()); ++k) {
-                    if (ItemWeight(i, j)<ItemWeight(i, k)) {
+                    if (ItemWeightBagIndex(i, j)<ItemWeightBagIndex(i, k)) {
                         swap(bag[i][j], bag[i][k]);
                     }
                 }
@@ -106,7 +117,7 @@ namespace hpc {
                     if (DistanceAB(bag[i][j], bag[i][j+1])>DistanceAB(bag[i][j], bag[i][k])) {
                         swap(bag[i][j+1], bag[i][k]);
                     }else{
-                        //                        printf("  ☓\n");
+                        //                        //////printf("  ☓\n");
                     }
                 }
             }
@@ -239,30 +250,203 @@ namespace hpc {
         rBag = bag;
     }
     
-    int nStage::ItemWeight(int time,int item_index){
-        return aStage->items().operator[](bag[time][item_index]).weight();
+    
+    int nStage::ItemWeightBagIndex(int time,int bag_index){
+        return ItemWeight(bag[time][bag_index]);
+    }
+    
+    int nStage::ItemWeight(int item_index){
+        return aStage->items().operator[](item_index).weight();
     }
     
     int nStage::DistanceAB(int itemA_index, int itemB_index){
         return allMap[itemA_index][aStage->items().operator[](itemB_index).destination().y][aStage->items().operator[](itemB_index).destination().x];
     }
     
-    //    ==============================================================================================
+    int nStage::DistanceAxy(int a_index, int _x, int _y){
+        return allMap[a_index][_y][_x];
+    }
+    
+    //    rootから消費燃料
+    int nStage::FuelConsumption(vector<int> root){
+        int truck_weight = 3;
+        for (int i=0; i<int(root.size()); ++i) {
+            truck_weight += ItemWeight(root[i]);
+        }
+        if (truck_weight>(15+3)) {
+            //////printf("過積載");
+            return 999999999;
+        }
+        int fuel_consumption = 0;
+        fuel_consumption += truck_weight*DistanceAxy(root[0], mid_x, mid_y);
+        truck_weight -= ItemWeight(root[0]);
+        for (int i=0; i<int(root.size()-1); ++i) {
+            fuel_consumption += truck_weight*DistanceAB(root[i], root[i+1]);
+            truck_weight -= ItemWeight(root[i+1]);
+        }
+        truck_weight = 3;
+        fuel_consumption += truck_weight*DistanceAxy(root[int(root.size()-1)], mid_x, mid_y);
+        return fuel_consumption;
+    }
+    
+    void nStage::GreedyBag(){
+        for (int i=0; i<4; ++i) {
+            if(bag[i].size()<=1){continue;}
+            string sorted_key;
+            vector<int> tmp_bag, min_bag;
+            copy(bag[i].begin(), bag[i].end(), back_inserter(tmp_bag));
+            sort(tmp_bag.begin(),tmp_bag.end());
+            for (int j=0; j<int(bag[i].size()); ++j) {
+                sorted_key.push_back('a'+tmp_bag[j]);
+            }
+            if(mp.count(sorted_key) != 0) {
+                // 設定されている場合の処理
+//                ///printf("ハッシュが役になったよ！！！------------------------------------------------------------------------------");
+                string abcd_best = mp[sorted_key];
+                for (int j=0; j<int(bag[i].size()); ++j) {
+                    bag[i][j] = abcd_best.at(j)-'a';
+                }
+            } else {
+                // keyが設定されてない時
+                int min_fuel = 1000000000;
+                int s_fuel = 0;
+                do{
+                    s_fuel = FuelConsumption(tmp_bag);
+                    if (min_fuel>s_fuel){
+                        min_fuel = s_fuel;
+                        min_bag.clear();
+                        copy(tmp_bag.begin(), tmp_bag.end(), back_inserter(min_bag));
+                    }
+                }while (next_permutation(tmp_bag.begin(),tmp_bag.end()));
+                string best_key;
+                for (int j=0; j<int(bag[i].size()); ++j) {
+                    bag[i][j] = min_bag[j];
+                    best_key.push_back('a'+min_bag[j]);
+                }
+                mp[sorted_key] = best_key;
+            }
+        }
+    }
+    
+    long long nStage::Pow(int _x, int _y){
+        long long r = 1;
+        for (int i=0; i<_y; ++i) {
+            r *= _x;
+        }
+        return r;
+    }
+    
+    void nStage::Greedy(){
+        ///printf("荷物: ");
+        for (int i=0; i<4; ++i) {
+            ///printf("%02d  ",int(bag[i].size()));
+        }
+        ///printf("(%d)\n",int(bag[4].size()));
+        if (bag[4].size()==0) {
+            GreedyBag();
+            return;
+        }
+        vector<vector<int>> init_bag(5);
+        vector<vector<int>> max_bag(4);
+        for (int i = 0; i<5; ++i) {
+            copy(bag[i].begin(),bag[i].end(),back_inserter(init_bag[i]));
+        }
+        //　ルーーーぷ
+        //        for (int i=0; i<Pow(4,int(bag[4].size())); ++i) {
+        
+        int min_fuel = 100000000;
+        for (int q=0; q<300; ++q) {
+            int i = rand()%Pow(4, int(bag[4].size()));
+            //            ///printf("%016d\n",i);
+            vector<int> delivery_time;
+            for (int j=0; j<int(bag[4].size()); ++j) {
+                delivery_time.push_back(i/Pow(4,j)%4);
+            }
+            //            selectedTimeの確認
+//            string key_abcd{""};
+//            for (int j=int(bag[4].size()-1); j>=0;--j) {
+//                //////printf("%d ",delivery_time[j]);
+//                key_abcd += 'a'+delivery_time[j];
+//            }
+//            cout << key_abcd;
+//            //////printf("\n");
+            //          ここに処理
+            for (int j = 0; j<4; ++j) {
+                bag[j].clear();
+                for (int k = 0; k<int(init_bag[j].size()); ++k) {
+                    bag[j].push_back(init_bag[j][k]);
+                }
+            }
+            for (int j = 0; j<int(bag[4].size()); ++j) {
+                bag[delivery_time[j]].push_back(bag[4][j]);
+            }
+            //            ここまででNEWバッグの生成完了
+            //            ここからスコア
+            //            荷重積載チェック
+            int c_flag = 0;
+            int w ;
+            for (int j = 0; j<4; ++j) {
+                w = 0;
+                for (int k=0; k<int(bag[j].size()); ++k) {
+                    w+=ItemWeight(bag[j][k]);
+                }
+                if (w>15) {
+                    c_flag = 1;
+                }
+            }
+            if (c_flag==1) {
+                continue;
+            }
+            GreedyBag(); // 配送順の最適化
+            int total_fuel = 0;
+            for (int j=0; j<4; ++j) {
+                if (bag[j].size()==0) {
+                    continue;
+                }
+                total_fuel += FuelConsumption(bag[j]);
+            }
+            //            int score = aStage->field().width() * aStage->field().height() * aStage->items().count() * 10000 / total_fuel;
+            //            //////printf("score = %d\n",score);
+            if (total_fuel<min_fuel) {
+                min_fuel = total_fuel;
+                for (int k=0; k<4; ++k) {
+                    max_bag[k].clear();
+                    for (int l=0; l<int(bag[k].size()); ++l) {
+                        max_bag[k].push_back(bag[k][l]);
+                    }
+                }
+            }
+            //            bagを初期値に戻す
+            for (int j = 0; j<4; ++j) {
+                bag[j].clear();
+                for (int k = 0; k<int(init_bag[j].size()); ++k) {
+                    bag[j].push_back(init_bag[j][k]);
+                }
+            }
+        }
+        for (int i=0; i<4; ++i) {
+            bag[i].clear();
+            for (int j=0; j<int(max_bag[i].size()); ++j) {
+                bag[i].push_back(max_bag[i][j]);
+            }
+        }
+        return;
+    }
     
     
     //    ========================================================================== solve
     void solve(const Stage& aStage){
-        stageNum++;
         nStage t;
         t.getStage(aStage);
-        //        HPC_PRINT("----------new stage %d------------------------------------------\n",stageNum);
+        //////printf("----------------------------------↓ %d ↓----------------\n",stag_i++);
         t.putBag();
-        t.RePutBag();
+        //        t.RePutBag();
         t.calAllMap();
-        t.ReOrderBagRoot();
+        //        t.ReOrderBagRoot();
+        //        t.GreedyBag();
+        t.Greedy();
         t.putAct();
         t.ans();
-        //        HPC_PRINT("中心:　%d x %d\n",t.mid_x,t.mid_y);
     }
     
     
@@ -363,6 +547,9 @@ namespace hpc {
     {
         if (aStageState == StageState_Failed) {
             // 失敗したかどうかは、ここで検知できます。
+            //////printf("☓");
+        }else{
+            //////printf("○");
         }
     }
     
@@ -378,12 +565,15 @@ namespace hpc {
     {
         if (aStageState == StageState_Failed) {
             // 失敗したかどうかは、ここで検知できます。
+            //////printf("\nno.%03d: 失敗",stag_i);
+            failed_stage_n++;
         }
         else if (aStageState == StageState_TurnLimit) {
             // ターン数オーバーしたかどうかは、ここで検知できます。
+        }else{
+            //////printf("\nno.%03d: 成功",stag_i);
+            successd_stage_n++;
         }
-        
-        //        printf("スコア  %d\n",aStage.score());
+        //////printf(" (%07d)\nTOTAL: %d/%d\n",aStage.score(),successd_stage_n,successd_stage_n+failed_stage_n);
     }
 }
-
