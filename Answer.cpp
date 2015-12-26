@@ -117,7 +117,7 @@ namespace hpc {
                     if (DistanceAB(bag[i][j], bag[i][j+1])>DistanceAB(bag[i][j], bag[i][k])) {
                         swap(bag[i][j+1], bag[i][k]);
                     }else{
-                        //                        //////printf("  ☓\n");
+                        //                        ////printf("  ☓\n");
                     }
                 }
             }
@@ -274,7 +274,7 @@ namespace hpc {
             truck_weight += ItemWeight(root[i]);
         }
         if (truck_weight>(15+3)) {
-            //////printf("過積載");
+            ////printf("過積載");
             return 999999999;
         }
         int fuel_consumption = 0;
@@ -301,7 +301,7 @@ namespace hpc {
             }
             if(mp.count(sorted_key) != 0) {
                 // 設定されている場合の処理
-//                ///printf("ハッシュが役になったよ！！！------------------------------------------------------------------------------");
+                //                ////printf("ハッシュが役になったよ！！！------------------------------------------------------------------------------");
                 string abcd_best = mp[sorted_key];
                 for (int j=0; j<int(bag[i].size()); ++j) {
                     bag[i][j] = abcd_best.at(j)-'a';
@@ -337,11 +337,11 @@ namespace hpc {
     }
     
     void nStage::Greedy(){
-        ///printf("荷物: ");
+        ////printf("荷物: ");
         for (int i=0; i<4; ++i) {
-            ///printf("%02d  ",int(bag[i].size()));
+            //printf("%02d  ",int(bag[i].size()));
         }
-        ///printf("(%d)\n",int(bag[4].size()));
+        //printf("(%d)\n",int(bag[4].size()));
         if (bag[4].size()==0) {
             GreedyBag();
             return;
@@ -357,19 +357,19 @@ namespace hpc {
         int min_fuel = 100000000;
         for (int q=0; q<300; ++q) {
             int i = rand()%Pow(4, int(bag[4].size()));
-            //            ///printf("%016d\n",i);
+            //            //printf("%016d\n",i);
             vector<int> delivery_time;
             for (int j=0; j<int(bag[4].size()); ++j) {
                 delivery_time.push_back(i/Pow(4,j)%4);
             }
             //            selectedTimeの確認
-//            string key_abcd{""};
-//            for (int j=int(bag[4].size()-1); j>=0;--j) {
-//                //////printf("%d ",delivery_time[j]);
-//                key_abcd += 'a'+delivery_time[j];
-//            }
-//            cout << key_abcd;
-//            //////printf("\n");
+            //            string key_abcd{""};
+            //            for (int j=int(bag[4].size()-1); j>=0;--j) {
+            //                //printf("%d ",delivery_time[j]);
+            //                key_abcd += 'a'+delivery_time[j];
+            //            }
+            //            cout << key_abcd;
+            //            //printf("\n");
             //          ここに処理
             for (int j = 0; j<4; ++j) {
                 bag[j].clear();
@@ -406,7 +406,7 @@ namespace hpc {
                 total_fuel += FuelConsumption(bag[j]);
             }
             //            int score = aStage->field().width() * aStage->field().height() * aStage->items().count() * 10000 / total_fuel;
-            //            //////printf("score = %d\n",score);
+            //            //printf("score = %d\n",score);
             if (total_fuel<min_fuel) {
                 min_fuel = total_fuel;
                 for (int k=0; k<4; ++k) {
@@ -438,7 +438,7 @@ namespace hpc {
     void solve(const Stage& aStage){
         nStage t;
         t.getStage(aStage);
-        //////printf("----------------------------------↓ %d ↓----------------\n",stag_i++);
+        //printf("----------------------------------↓ %d ↓----------------\n",stag_i++);
         t.putBag();
         //        t.RePutBag();
         t.calAllMap();
@@ -547,9 +547,9 @@ namespace hpc {
     {
         if (aStageState == StageState_Failed) {
             // 失敗したかどうかは、ここで検知できます。
-            //////printf("☓");
+            //printf("☓");
         }else{
-            //////printf("○");
+            //printf("○");
         }
     }
     
@@ -565,15 +565,15 @@ namespace hpc {
     {
         if (aStageState == StageState_Failed) {
             // 失敗したかどうかは、ここで検知できます。
-            //////printf("\nno.%03d: 失敗",stag_i);
+            //printf("\nno.%03d: 失敗",stag_i);
             failed_stage_n++;
         }
         else if (aStageState == StageState_TurnLimit) {
             // ターン数オーバーしたかどうかは、ここで検知できます。
         }else{
-            //////printf("\nno.%03d: 成功",stag_i);
+            //printf("\nno.%03d: 成功",stag_i);
             successd_stage_n++;
         }
-        //////printf(" (%07d)\nTOTAL: %d/%d\n",aStage.score(),successd_stage_n,successd_stage_n+failed_stage_n);
+        //printf(" (%07d)\nTOTAL: %d/%d\n",aStage.score(),successd_stage_n,successd_stage_n+failed_stage_n);
     }
 }
