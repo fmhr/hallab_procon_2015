@@ -44,11 +44,12 @@ namespace hpc {
         void ans();                                     // rAct, rBag にコピーする
         int ItemWeightBagIndex(int time,int bag_index);
         int ItemWeight(int item_index);
-        int DistanceAB(int a_index, int itemB_index);
-        int DistanceAxy(int a_index, int x, int y);
+        int DistanceAB(int a_index, int itemB_index);   // 点A,点Bとの距離
+        int DistanceAxy(int a_index, int x, int y);     // 点A,点(x,y)との距離
         int FuelConsumption(vector<int> root);
         void GreedyBag();                                 // bagの中の荷物を貪欲に並び替える
-        void Greedy();                                    // bag[-1]の振り分けの貪欲
+        void Greedy();                                    // bag[-1]の振り分けの全探索
+        void GreedyRoot();                                 // 貪欲法
         long long Pow(int x, int y);
         string TimeOrderByList();
         bool overWeight();
@@ -290,6 +291,39 @@ namespace hpc {
         return fuel_consumption;
     }
     
+    // ルート探索の貪欲法
+    // 方針　中心点(mid_x,midy)から最も近いものを選んでいく
+    void nStage::GreedyRoot(){
+        for (int t=0; t<4; ++t) {
+            // 荷物が1つの時は処理しない
+            if (bag[t].size()<=1) {
+                continue;
+            }
+            // 荷物が全探索できる個数なら全探索
+            // 個々に処理
+            //
+            int min_bag_index;
+            for (int i=0; i<bag[t].size(); ++i) {
+                // i==0のときは中心点に近いものを探す
+                min_bag_index = i;
+                int min_distance=1000000000;
+                for (int j=i; j<bag[t].size();++j) {
+                    int d = 0;
+                    if (i==0) {
+                        d = DistanceAxy(j, mid_x, mid_y);
+                    }else{
+                        d = DistanceAB(i-1, j);
+                    }
+                    if (d<min_distance) {
+                        min_distance = d;
+                        min_bag_index = j;
+                    }
+                }
+                swap(bag[t][i],bag[t][min_bag_index]);
+            }
+        }
+    }
+    
     void nStage::GreedyBag(){
         for (int i=0; i<4; ++i) {
             if(bag[i].size()<=1){continue;}
@@ -381,7 +415,8 @@ namespace hpc {
             if (overWeight()) {
                 continue;
             }
-            GreedyBag(); // 配送順の最適化
+//            GreedyBag(); // 配送順の最適化
+            GreedyRoot();
             int total_fuel = 0;
             for (int j=0; j<4; ++j) {
                 if (bag[j].size()==0) {
@@ -417,6 +452,7 @@ namespace hpc {
         return;
     }
     
+
     
     bool nStage::overWeight(){
         int w ;
