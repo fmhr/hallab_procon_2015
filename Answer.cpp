@@ -51,6 +51,7 @@ namespace hpc {
         void Greedy();                                    // bag[-1]の振り分けの貪欲
         long long Pow(int x, int y);
         string TimeOrderByList();
+        bool overWeight();
     };
     
     nStage::nStage()
@@ -381,20 +382,7 @@ namespace hpc {
                 bag[delivery_time[j]].push_back(bag[4][j]);
             }
             //            ここまででNEWバッグの生成完了
-            //            ここからスコア
-            //            荷重積載チェック
-            int c_flag = 0;
-            int w ;
-            for (int j = 0; j<4; ++j) {
-                w = 0;
-                for (int k=0; k<int(bag[j].size()); ++k) {
-                    w+=ItemWeight(bag[j][k]);
-                }
-                if (w>15) {
-                    c_flag = 1;
-                }
-            }
-            if (c_flag==1) {
+            if (overWeight()) {
                 continue;
             }
             GreedyBag(); // 配送順の最適化
@@ -431,6 +419,19 @@ namespace hpc {
             }
         }
         return;
+    }
+    bool nStage::overWeight(){
+        int w ;
+        for (int j = 0; j<4; ++j) {
+            w = 0;
+            for (int k=0; k<int(bag[j].size()); ++k) {
+                w+=ItemWeight(bag[j][k]);
+            }
+            if (w>15) {
+                return true;
+            }
+        }
+        return false;
     }
     
     
