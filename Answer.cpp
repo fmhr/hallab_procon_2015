@@ -42,17 +42,25 @@ namespace hpc {
         void ReOrderBagRoot();                          // bag[時間帯]の順番はそのままルートになる　0番目(重い荷物) N番目(近い荷物)
         void putAct();                                  // 配送リストからrootFromStart(), rootAB(), rootToStart()を呼び出す
         void ans();                                     // rAct, rBag にコピーする
-        int ItemWeightBagIndex(int time,int bag_index);
-        int ItemWeight(int item_index);
-        int DistanceAB(int a_index, int itemB_index);   // 点A,点Bとの距離
-        int DistanceAxy(int a_index, int x, int y);     // 点A,点(x,y)との距離
-        int FuelConsumption(vector<int> root);
-        void GreedyBag();                                 // bagの中の荷物を貪欲に並び替える
         void Greedy();                                    // bag[-1]の振り分けの全探索
-        void GreedyRoot();                                 // 貪欲法
-        long long Pow(int x, int y);
+        // ルート探索 bag[n]の中身を入れ替える
+        void RootSeach();                                 // ルート検索　親　TODO:後で作る
+        void GreedyRoot();                                // ルート決定　貪欲法
+        void Opt2(int t);                                 // ルート改善  2_Opt法
+        void ForceRoot(int t);                            // ルート決定　全探索 bag[t]を指定する
+        void GreedyBag();                                 // bagの中の荷物を貪欲に並び替える
         string TimeOrderByList();
-        bool overWeight();
+        // ↓使ってないもの(public)
+    private:
+        bool overWeight();                                 // 荷物が15を超えているか
+        long long Pow(int x, int y);                       // power
+        int RootCostFuel(vector<int> root);               // サークルの消費燃料
+        int RootCostLength(vector<int> root);             // サークルの距離　TODO:あとで作る
+        int ItemWeightBagIndex(int time,int bag_index);    // 重さ
+        int ItemWeight(int item_index);                    // 重さ2
+        int DistanceAB(int a_index, int itemB_index);      // 点A,点Bとの距離
+        int DistanceAxy(int a_index, int x, int y);        // 点A,点(x,y)との距離
+        // ↓使ってないもの(private)
     };
     
     nStage::nStage()
@@ -270,7 +278,7 @@ namespace hpc {
     }
     
     //    rootから消費燃料
-    int nStage::FuelConsumption(vector<int> root){
+    int nStage::RootCostFuel(vector<int> root){
         int truck_weight = 3;
         for (int i=0; i<int(root.size()); ++i) {
             truck_weight += ItemWeight(root[i]);
@@ -301,13 +309,17 @@ namespace hpc {
             }
             // 荷物が全探索できる個数なら全探索
             // 個々に処理
+            if (bag[t].size()<=5) {
+                ForceRoot(t);
+                continue;
+            }
             //
             int min_bag_index;
-            for (int i=0; i<bag[t].size(); ++i) {
+            for (int i=0; i<int(bag[t].size()); ++i) {
                 // i==0のときは中心点に近いものを探す
                 min_bag_index = i;
                 int min_distance=1000000000;
-                for (int j=i; j<bag[t].size();++j) {
+                for (int j=i; j<int(bag[t].size());++j) {
                     int d = 0;
                     if (i==0) {
                         d = DistanceAxy(j, mid_x, mid_y);
@@ -321,7 +333,78 @@ namespace hpc {
                 }
                 swap(bag[t][i],bag[t][min_bag_index]);
             }
+            Opt2(t);
         }
+        return;
+    }
+    
+    
+    // 2_Opt法
+    // 参考　http://www.geocities.jp/m_hiroi/light/pyalgo64.html
+    void nStage::Opt2(int t){
+        while (true) {
+            int count = 0;
+            for (int i = 0; i<int(bag[t].size()-3); ++i) {
+                int i1 = i + 1;
+                for (int j=i+2; j<int(bag[t].size()-1); ++j) {
+                    //                    if (j==int(allMap[t].size()-1) {
+                    //                        // 0をふくんだベクターが必要
+                    //                    }
+                    int j1 = j + 1;
+                    int l1,l2,l3,l4;
+                    if ((i!=0) | (j1!=0)) {
+                        l1 = DistanceAB(bag[t][i], bag[t][i1]);
+                        l2 = DistanceAB(bag[t][j], bag[t][j1]);
+                        l3 = DistanceAB(bag[t][i], bag[t][j]);
+                        l4 = DistanceAB(bag[t][i1], bag[t][j1]);
+                    }
+                    if (l1+l2>l3+l4) {
+                        swap(bag[t][i1], bag[t][j]);
+                        count += 1;
+                    }
+                }
+            }
+            if (count == 0) {
+                break;
+            }
+            
+        }
+        return;
+    }
+    
+    void nStage::ForceRoot(int i){
+            string sorted_key;
+            vector<int> tmp_bag, min_bag;
+            copy(bag[i].begin(), bag[i].end(), back_inserter(tmp_bag));
+            sort(tmp_bag.begin(),tmp_bag.end());
+            for (int j=0; j<int(bag[i].size()); ++j) {
+                sorted_key.push_back('a'+tmp_bag[j]);
+            }
+            if(mp.count(sorted_key) != 0) {
+                // ハッシュが設定されている場合の処理
+                string abcd_best = mp[sorted_key];
+                for (int j=0; j<int(bag[i].size()); ++j) {
+                    bag[i][j] = abcd_best.at(j)-'a';
+                }
+            } else {
+                // keyが設定されてない時
+                int min_fuel = 1000000000;
+                int s_fuel = 0;
+                do{
+                    s_fuel = RootCostFuel(tmp_bag);
+                    if (min_fuel>s_fuel){
+                        min_fuel = s_fuel;
+                        min_bag.clear();
+                        copy(tmp_bag.begin(), tmp_bag.end(), back_inserter(min_bag));
+                    }
+                }while (next_permutation(tmp_bag.begin(),tmp_bag.end()));
+                string best_key;
+                for (int j=0; j<int(bag[i].size()); ++j) {
+                    bag[i][j] = min_bag[j];
+                    best_key.push_back('a'+min_bag[j]);
+                }
+                mp[sorted_key] = best_key;
+            }
     }
     
     void nStage::GreedyBag(){
@@ -345,7 +428,7 @@ namespace hpc {
                 int min_fuel = 1000000000;
                 int s_fuel = 0;
                 do{
-                    s_fuel = FuelConsumption(tmp_bag);
+                    s_fuel = RootCostFuel(tmp_bag);
                     if (min_fuel>s_fuel){
                         min_fuel = s_fuel;
                         min_bag.clear();
@@ -387,7 +470,7 @@ namespace hpc {
         }
         
         int min_fuel = 100000000;
-        for (int q=0; q<300; ++q) {
+        for (int q=0; q<5000; ++q) {/////////////////////////////////////////////ランダム回数
             int i = q;
             // 荷物(-1)が４つ以上の時はランダム
             if (bag[4].size()>4) {
@@ -422,7 +505,7 @@ namespace hpc {
                 if (bag[j].size()==0) {
                     continue;
                 }
-                total_fuel += FuelConsumption(bag[j]);
+                total_fuel += RootCostFuel(bag[j]);
             }
             //            int score = aStage->field().width() * aStage->field().height() * aStage->items().count() * 10000 / total_fuel;
             //            //printf("score = %d\n",score);
