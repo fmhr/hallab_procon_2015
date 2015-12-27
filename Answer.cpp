@@ -353,7 +353,7 @@ namespace hpc {
         }
         
         int min_fuel = 100000000;
-        for (int q=0; q<350; ++q) {
+        for (int q=0; q<300; ++q) {
             int i = q;
             // 荷物(-1)が４つ以上の時はランダム
             if (bag[4].size()>4) {
