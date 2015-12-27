@@ -39,7 +39,8 @@ namespace hpc {
         void rootToStart(int time,int p);               // Pos(p)から(中心点までのアクションを埋める　> nStage.act
         void putBag();                                  // 荷物リストからbag[時間帯]に入れる
         void RePutBag();                                // bag[時間帯]の最適化(荷物[-1]を割り振る
-        void ReOrderBagRoot();                          // bag[時間帯]の順番はそのままルートになる　0番目(重い荷物) N番目(近い荷物)
+        void ReOrderBagRoot();                          // bag[時間帯]の順番はそのままルートになる
+                                                        // 0番目(重い荷物) N番目(近い荷物)
         void putAct();                                  // 配送リストからrootFromStart(), rootAB(), rootToStart()を呼び出す
         void ans();                                     // rAct, rBag にコピーする
         void Greedy();                                    // bag[-1]の振り分けの全探索
@@ -47,6 +48,7 @@ namespace hpc {
         void RootSeach();                                 // ルート検索　親　TODO:後で作る
         void GreedyRoot();                                // ルート決定　貪欲法
         void Opt2(int t);                                 // ルート改善  2_Opt法
+        void ReverseRoot(int t);                          // ルート改善　逆順を試す(消費燃料を見る)
         void ForceRoot(int t);                            // ルート決定　全探索 bag[t]を指定する
         void GreedyBag();                                 // bagの中の荷物を貪欲に並び替える
         string TimeOrderByList();
@@ -334,12 +336,13 @@ namespace hpc {
                 swap(bag[t][i],bag[t][min_bag_index]);
             }
             Opt2(t);
+            ReverseRoot(t);
         }
         return;
     }
     
     
-    // 2_Opt法
+    // ルート改善　2_Opt法
     // 参考　http://www.geocities.jp/m_hiroi/light/pyalgo64.html
     void nStage::Opt2(int t){
         while (true) {
@@ -351,7 +354,10 @@ namespace hpc {
                     //                        // 0をふくんだベクターが必要
                     //                    }
                     int j1 = j + 1;
-                    int l1,l2,l3,l4;
+                    int l1 = 0;
+                    int l2 = 0;
+                    int l3 = 0;
+                    int l4 = 0;
                     if ((i!=0) | (j1!=0)) {
                         l1 = DistanceAB(bag[t][i], bag[t][i1]);
                         l2 = DistanceAB(bag[t][j], bag[t][j1]);
@@ -372,6 +378,20 @@ namespace hpc {
         return;
     }
     
+    // ルート改善　逆順のチェック
+    void nStage::ReverseRoot(int t){
+        vector<int> root;
+        copy(bag[t].begin(),bag[t].end(),back_inserter(root));
+        reverse(root.begin(),root.end());
+        if (RootCostFuel(bag[t])>RootCostFuel(root)) {
+            bag[t].clear();
+            copy(root.begin(), root.end(), back_inserter(bag[t]));
+        }
+        return;
+    }
+    
+    
+    // ルート全探索
     void nStage::ForceRoot(int i){
             string sorted_key;
             vector<int> tmp_bag, min_bag;
@@ -470,17 +490,18 @@ namespace hpc {
         }
         
         int min_fuel = 100000000;
-        for (int q=0; q<5000; ++q) {/////////////////////////////////////////////ランダム回数
+        vector<int> delivery_time;
+        for (int q=0; q<6385; ++q) {////////////////////////ランダム回数//// 提出時は 16385
             int i = q;
             // 荷物(-1)が４つ以上の時はランダム
-            if (bag[4].size()>4) {
+            if (bag[4].size()>3) {
                 i=rand()%Pow(4, int(bag[4].size()));
             }else{
                 if (i>Pow(4, int(bag[4].size()))) {
                     break;
                 }
             }
-            vector<int> delivery_time;
+            delivery_time.clear();
             for (int j=0; j<int(bag[4].size()); ++j) {
                 delivery_time.push_back(i/Pow(4,j)%4);
             }
@@ -554,6 +575,7 @@ namespace hpc {
     
     //    ========================================================================== solve
     void solve(const Stage& aStage){
+        
         nStage t;
         t.getStage(aStage);
         //printf("----------------------------------↓ %d ↓----------------\n",stag_i++);
