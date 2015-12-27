@@ -288,7 +288,7 @@ namespace hpc {
                 }
                 swap(bag[t][i],bag[t][min_bag_index]);
             }
-            Opt2(t);
+//            Opt2(t);
             ReverseRoot(t);
         }
         return;
@@ -303,30 +303,35 @@ namespace hpc {
             for (int i = 0; i<int(bag[t].size()-3); ++i) {
                 int i1 = i + 1;
                 for (int j=i+2; j<int(bag[t].size()-1); ++j) {
-                    //                    if (j==int(allMap[t].size()-1) {
-                    //                        // 0をふくんだベクターが必要
-                    //                    }
-                    int j1 = j + 1;
+                    int j1;
+                    if (j==int(bag[t].size())-1) {
+                        j1 = 0;
+                    }else{
+                        j1 = j+1;
+                    }
                     int l1 = 0;
                     int l2 = 0;
                     int l3 = 0;
                     int l4 = 0;
-                    if ((i!=0) | (j1!=0)) {
+                    if (i!=0 || j1!=0) {
                         l1 = DistanceAB(bag[t][i], bag[t][i1]);
                         l2 = DistanceAB(bag[t][j], bag[t][j1]);
                         l3 = DistanceAB(bag[t][i], bag[t][j]);
                         l4 = DistanceAB(bag[t][i1], bag[t][j1]);
-                    }
-                    if (l1+l2>l3+l4) {
-                        swap(bag[t][i1], bag[t][j]);
-                        count += 1;
+                        if (l1+l2>l3+l4) {
+                            //                        vector<int> new_path;
+                            //                        copy(bag[t][i1], bag[t][j+1], back_inserter(new_path));
+                            //                        swap(bag[t][i1], bag[t][j]);
+                            reverse(bag[t].begin(), bag[t].end());
+                            reverse(bag[t].end()-j-1, bag[t].end()-i1);
+                            count += 1;
+                        }
                     }
                 }
             }
             if (count == 0) {
                 break;
             }
-            
         }
         return;
     }
@@ -528,7 +533,6 @@ namespace hpc {
     
     //    ========================================================================== solve
     void solve(const Stage& aStage){
-        
         nStage t;
         t.getStage(aStage);
         //printf("----------------------------------↓ %d ↓----------------\n",stag_i++);
