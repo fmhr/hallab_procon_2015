@@ -301,8 +301,7 @@ namespace hpc {
                 sorted_key.push_back('a'+tmp_bag[j]);
             }
             if(mp.count(sorted_key) != 0) {
-                // 設定されている場合の処理
-                //                ////printf("ハッシュが役になったよ！！！------------------------------------------------------------------------------");
+                // ハッシュが設定されている場合の処理
                 string abcd_best = mp[sorted_key];
                 for (int j=0; j<int(bag[i].size()); ++j) {
                     bag[i][j] = abcd_best.at(j)-'a';
@@ -352,25 +351,22 @@ namespace hpc {
         for (int i = 0; i<5; ++i) {
             copy(bag[i].begin(),bag[i].end(),back_inserter(init_bag[i]));
         }
-        //　ルーーーぷ
-        //        for (int i=0; i<Pow(4,int(bag[4].size())); ++i) {
         
         int min_fuel = 100000000;
-        for (int q=0; q<300; ++q) {
-            int i = rand()%Pow(4, int(bag[4].size()));
-            //            //printf("%016d\n",i);
+        for (int q=0; q<350; ++q) {
+            int i = q;
+            // 荷物(-1)が４つ以上の時はランダム
+            if (bag[4].size()>4) {
+                i=rand()%Pow(4, int(bag[4].size()));
+            }else{
+                if (i>Pow(4, int(bag[4].size()))) {
+                    break;
+                }
+            }
             vector<int> delivery_time;
             for (int j=0; j<int(bag[4].size()); ++j) {
                 delivery_time.push_back(i/Pow(4,j)%4);
             }
-            //            selectedTimeの確認
-            //            string key_abcd{""};
-            //            for (int j=int(bag[4].size()-1); j>=0;--j) {
-            //                //printf("%d ",delivery_time[j]);
-            //                key_abcd += 'a'+delivery_time[j];
-            //            }
-            //            cout << key_abcd;
-            //            //printf("\n");
             //          ここに処理
             for (int j = 0; j<4; ++j) {
                 bag[j].clear();
@@ -420,6 +416,8 @@ namespace hpc {
         }
         return;
     }
+    
+    
     bool nStage::overWeight(){
         int w ;
         for (int j = 0; j<4; ++j) {
