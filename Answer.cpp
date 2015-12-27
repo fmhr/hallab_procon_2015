@@ -38,8 +38,6 @@ namespace hpc {
         void rootAB(int time,int p, int n, int m);      // Pos(p)から(n,m)までのあkyションを埋める > nStage.act
         void rootToStart(int time,int p);               // Pos(p)から(中心点までのアクションを埋める　> nStage.act
         void putBag();                                  // 荷物リストからbag[時間帯]に入れる
-        void ReOrderBagRoot();                          // bag[時間帯]の順番はそのままルートになる
-                                                        // 0番目(重い荷物) N番目(近い荷物)
         void putAct();                                  // 配送リストからrootFromStart(), rootAB(), rootToStart()を呼び出す
         void ans();                                     // rAct, rBag にコピーする
         void Greedy();                                    // bag[-1]の振り分けの全探索
@@ -89,31 +87,7 @@ namespace hpc {
         }
     }
     
-    
-    void nStage::ReOrderBagRoot(){
-        vector<int> temp_bag;
-        for (int i=0; i<4; ++i) {
-            // 重さソート
-            for (int j=0; j<int(bag[i].size()); ++j) {
-                for (int k=j+1; k<int(bag[i].size()); ++k) {
-                    if (ItemWeightBagIndex(i, j)<ItemWeightBagIndex(i, k)) {
-                        swap(bag[i][j], bag[i][k]);
-                    }
-                }
-            }
-            // 配達順決め
-            // jと近いものを外側から内側にスワップしていく
-            for (int j=0; j<int(bag[i].size()); ++j) {
-                for (int k=j+2; k<int(bag[i].size());++k) {
-                    if (DistanceAB(bag[i][j], bag[i][j+1])>DistanceAB(bag[i][j], bag[i][k])) {
-                        swap(bag[i][j+1], bag[i][k]);
-                    }else{
-                        //                        ////printf("  ☓\n");
-                    }
-                }
-            }
-        }
-    }
+
     
     //    (暫定)　かごの順番で回るためのActをつめる
     void nStage::putAct(){
