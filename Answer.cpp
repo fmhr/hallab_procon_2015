@@ -38,7 +38,6 @@ namespace hpc {
         void rootAB(int time,int p, int n, int m);      // Pos(p)から(n,m)までのあkyションを埋める > nStage.act
         void rootToStart(int time,int p);               // Pos(p)から(中心点までのアクションを埋める　> nStage.act
         void putBag();                                  // 荷物リストからbag[時間帯]に入れる
-        void RePutBag();                                // bag[時間帯]の最適化(荷物[-1]を割り振る
         void ReOrderBagRoot();                          // bag[時間帯]の順番はそのままルートになる
                                                         // 0番目(重い荷物) N番目(近い荷物)
         void putAct();                                  // 配送リストからrootFromStart(), rootAB(), rootToStart()を呼び出す
@@ -75,8 +74,8 @@ namespace hpc {
         mid_y = aStage->field().height()/2;
     }
     
-    //    (暫定)　はいるだけ荷物を積める=================== nStage::putBag()
-    void nStage::putBag(){        //        バッグに詰める　-1はbag[4]に
+    //     バッグに詰める　-1はbag[4]に
+    void nStage::putBag(){
         for (int i = 0; i < aStage->items().count(); ++i) {
             //            HPC_PRINT("時間:%d 重さ:%d 配達先:%d,%d\n",aStage->items().operator[](i).period(),
             //            aStage->items().operator[](i).weight(),
@@ -90,26 +89,6 @@ namespace hpc {
         }
     }
     
-    void nStage::RePutBag(){
-        vector<int> w(4);
-        for (int i=0; i<4; ++i) {
-            for (int j=0; j<int(bag[i].size()); ++j) {
-                w[i] += aStage->items().operator[](bag[i][j]).weight();
-            }
-        }
-        for (int i=0; i<int(bag[4].size()); ++i) {
-            int min_bag = 0;
-            int min_bag_w = 100;
-            for (int j=0; j<4; ++j) {
-                if (min_bag_w>w[j]){
-                    min_bag_w = w[j];
-                    min_bag = j;
-                }
-            }
-            w[min_bag] += aStage->items().operator[](bag[4][i]).weight();
-            bag[min_bag].push_back(bag[4][i]);
-        }
-    }
     
     void nStage::ReOrderBagRoot(){
         vector<int> temp_bag;
