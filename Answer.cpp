@@ -78,7 +78,14 @@ namespace hpc {
         SetAllMap();
         //        t.ReOrderBagRoot();
         //        t.GreedyBag();
-        Greedy();
+        ///////////////////////
+        if (bag[4].size()==0) {
+            REP(t, 4){
+                ForceRoot(t);
+            }
+        }else{
+            Greedy();
+        }
         PutAct();
         ans();
     }
@@ -237,17 +244,6 @@ namespace hpc {
     }
     
     void nStage::Greedy(){
-        ////printf("荷物: ");
-        for (int i=0; i<4; ++i) {
-            //printf("%02d  ",int(bag[i].size()));
-        }
-        //printf("(%d)\n",int(bag[4].size()));
-        if (bag[4].size()==0) {
-            REP(t, 4){
-                ForceRoot(t);
-            }
-            return;
-        }
         vector<vector<int>> init_bag(5);
         vector<vector<int>> max_bag(4);
         for (int i = 0; i<5; ++i) {
