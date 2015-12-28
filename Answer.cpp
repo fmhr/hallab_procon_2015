@@ -10,6 +10,7 @@
 
 #define FOR(i,a,b) for(int i=(a);i<int(b);++i)
 #define REP(i,n)  FOR(i,0,n)
+#define inf 715827882 // INT_MAX/3
 
 using namespace std;
 
@@ -42,13 +43,14 @@ namespace hpc {
         void SetAction();                               // 配送リストからアクションを埋める
         void SetActionStart2A(int time,int p);            // 中心点からPos(p)までのアクションを埋める > nStage.act
         void SetActionA2B(int time,int p, int n, int m);  // Pos(p)から(n,m)までのアクションを埋める > nStage.act
-        void SetActionB2Eond(int time,int p);             // Pos(p)から(中心点までのアクションを埋める　> nStage.act
+        void SetActionB2End(int time,int p);             // Pos(p)から(中心点までのアクションを埋める　> nStage.act
         void CopyGlovalANS();                             // rAct, rBag にコピーする
         void Greedy();                                    // bag[-1]の振り分けの全探索
         void ForceRoot(int t);                            // ルート決定　全探索 bag[t]を指定する
         void GreedyRoot();                                // ルート決定　貪欲法
-        void NewGreedyRoot(int t);                        // ルート決定　貪欲法 bag(t)
+        void GreedyRootT(int t);                          // ルート決定　貪欲法 bag(t)
         void Opt2(int t);                                 // ルート改善  2_Opt法(距離)
+        void Opt2Fuel(int t);                             // ルート改善  2_Opt法(燃料)
         void ReverseRoot(int t);                          // ルート改善　逆順を試す(消費燃料を見る)
         int FuelCostR(vector<int> root);                  // ルートの消費燃料
         int DistanceAB(int a_index, int itemB_index);      // 点A,点Bとの距離
@@ -91,7 +93,7 @@ namespace hpc {
         for (int i = 0; i<5; ++i) {
             copy(bag[i].begin(),bag[i].end(),back_inserter(init_bag[i]));
         }
-        int min_fuel = 100000000;
+        int min_fuel = inf;
         vector<int> delivery_time;
         ////////////////////////ランダム回数//// 提出時は 16385
         for (int q=0; q<6385; ++q) {
@@ -162,15 +164,15 @@ namespace hpc {
         for (int i=0; i<int(root.size()); ++i) {
             truck_weight += ItemWeight(root[i]);
         }
-        assert(truck_weight<=18);
+//        assert(truck_weight<=18);
         int fuel_consumption = 0;
-        fuel_consumption += truck_weight*DistanceAxy(root[0], mid_x, mid_y);
+        fuel_consumption += (truck_weight*DistanceAxy(root[0], mid_x, mid_y));
         truck_weight -= ItemWeight(root[0]);
         for (int i=0; i<int(root.size()-1); ++i) {
-            fuel_consumption += truck_weight*DistanceAB(root[i], root[i+1]);
+            fuel_consumption += (truck_weight*DistanceAB(root[i], root[i+1]));
             truck_weight -= ItemWeight(root[i+1]);
         }
-        assert(truck_weight==3);
+//        assert(truck_weight==3);
         fuel_consumption += truck_weight*DistanceAxy(root[int(root.size()-1)], mid_x, mid_y);
         return fuel_consumption;
     }
@@ -179,14 +181,14 @@ namespace hpc {
     // 方針　中心点(mid_x,midy)から最も近いものを選んでいく
     void nStage::GreedyRoot(){
         for (int t=0; t<4; ++t) {
-            NewGreedyRoot(t);
+            GreedyRootT(t);
         }
     }
     
     
     // ルート探索の貪欲法
     // 方針　中心点(mid_x,midy)から最も近いものを選んでいく
-    void nStage::NewGreedyRoot(int t){
+    void nStage::GreedyRootT(int t){
         // 荷物が1つの時は処理しない
         if (bag[t].size()<=1) {
             return;
@@ -202,7 +204,7 @@ namespace hpc {
         for (int i=0; i<int(bag[t].size()); ++i) {
             // i==0のときは中心点に近いものを探す
             min_bag_index = i;
-            int min_distance=1000000000;
+            int min_distance=inf;
             for (int j=i; j<int(bag[t].size());++j) {
                 int d = 0;
                 if (i==0) {
@@ -218,6 +220,7 @@ namespace hpc {
             swap(bag[t][i],bag[t][min_bag_index]);
         }
         Opt2(t);
+//        Opt2Fuel(t);
         ReverseRoot(t);
         return;
     }
@@ -227,9 +230,9 @@ namespace hpc {
     void nStage::Opt2(int t){
         while (true) {
             int count = 0;
-            for (int i = 0; i<int(bag[t].size()-3); ++i) {
+            for (int i = 0; i<int(bag[t].size()-2); ++i) {
                 int i1 = i + 1;
-                for (int j=i+2; j<int(bag[t].size()-1); ++j) {
+                for (int j=i+2; j<int(bag[t].size()); ++j) {
                     int j1;
                     if (j==int(bag[t].size())-1) {
                         j1 = 0;
@@ -256,14 +259,46 @@ namespace hpc {
         }
     }
     
+    
+    void nStage::Opt2Fuel(int t){
+        vector<int> root;
+        while (true) {
+            int count = 0;
+            for (int i = 0; i<int(bag[t].size()-2); ++i) {
+                int i1 = i + 1;
+                for (int j=i+2; j<int(bag[t].size()); ++j) {
+                    int j1;
+                    if (j==int(bag[t].size())-1) {
+                        j1 = 0;
+                    }else{
+                        j1 = j+1;
+                    }
+                    root.clear();
+                    copy(bag[t].begin(),bag[t].end(),back_inserter(root));
+                    reverse(root.begin(), root.end());
+                    reverse(root.end()-j-1, root.end()-i1);
+                    if (i!=0 || j1!=0) {
+                        if (FuelCostR(bag[t])>FuelCostR(root)) {
+                            bag[t].clear();
+                            copy(root.begin(),root.end(),back_inserter(bag[t]));
+                            count += 1;
+                        }
+                    }
+                }
+            }
+            if (count == 0) {
+                break;
+            }
+        }
+    }
+    
     // ルート改善　逆順のチェック
     void nStage::ReverseRoot(int t){
         vector<int> root;
         copy(bag[t].begin(),bag[t].end(),back_inserter(root));
         reverse(root.begin(),root.end());
         if (FuelCostR(bag[t])>FuelCostR(root)) {
-            bag[t].clear();
-            copy(root.begin(), root.end(), back_inserter(bag[t]));
+            reverse(bag[t].begin(),bag[t].end());
         }
         return;
     }
@@ -287,7 +322,7 @@ namespace hpc {
                 }
             } else {
                 // keyが設定されてない時
-                int min_fuel = 1000000000;
+                int min_fuel = inf;
                 int s_fuel = 0;
                 do{
                     s_fuel = FuelCostR(tmp_bag);
@@ -343,7 +378,7 @@ namespace hpc {
                 }
             }
             if (bag[i].size()>0) {
-                SetActionB2Eond(i, bag[i][bag[i].size()-1]);
+                SetActionB2End(i, bag[i][bag[i].size()-1]);
             }
         }
     }
@@ -389,7 +424,7 @@ namespace hpc {
         }
     }
     
-    void nStage::SetActionB2Eond(int time,int p){
+    void nStage::SetActionB2End(int time,int p){
         if (bag[time].size()==0) {
             return;
         }
