@@ -14,8 +14,7 @@
 using namespace std;
 
 namespace hpc {
-    
-    int stag_i;                // ステージナンバー
+    int stage_n;                // ステージナンバー
     int successd_stage_n;
     int failed_stage_n;
     vector<queue<Action>> rAct;  // rAct[時間帯] = アクションリスト　nStage.act をコピーする
@@ -27,40 +26,38 @@ namespace hpc {
     
     // 毎ステージで使うクラス　aStageの混合しないように注意
     class nStage{
+    public:
+        nStage();                                       // 初期設定 nStage::nStage()
+        const Stage *aStage;                            // nStage内でaStageを参照するためのもの
+        void getStage(const Stage& aStageSub);
+        void solve();
+    private:
         vector<vector<vector<int>>> allMap;  // allMap[基準点][y][x] = Pos(基準点)から(x,y)までの距離
         vector<vector<int>> bag;             // bag[時間帯] = 荷物リスト
         vector<queue<Action>> act;           // act[時間帯] = アクションリスト
         unordered_map <string, string>mp;
-    public:
-        nStage();                                       // 初期化? nStage::nStage()
-        const Stage *aStage;                            // nStage内でaStageを参照するためのもの
-        void getStage(const Stage& aStageSub);
-        void solve();
         int mid_x,mid_y;                                // 中心点
         void SetAllMap();                               // allMapを埋める
-        void RootFromStart(int time,int p);             // 中心点からPos(p)までのアクションを埋める > nStage.act
-        void RootAB(int time,int p, int n, int m);      // Pos(p)から(n,m)までのあkyションを埋める > nStage.act
-        void SetActRootToStart(int time,int p);               // Pos(p)から(中心点までのアクションを埋める　> nStage.act
-        void PutBag();                                  // 荷物リストからbag[時間帯]に入れる
-        void PutAct();                                  // 配送リストからrootFromStart(), rootAB(), rootToStart()を呼び出す
-        void ans();                                     // rAct, rBag にコピーする
+        void SetBag();                                  // 荷物リストからbag[時間帯]に入れる
+        void SetAction();                               // 配送リストからアクションを埋める
+        void SetActionStart2A(int time,int p);            // 中心点からPos(p)までのアクションを埋める > nStage.act
+        void SetActionA2B(int time,int p, int n, int m);  // Pos(p)から(n,m)までのアクションを埋める > nStage.act
+        void SetActionB2Eond(int time,int p);             // Pos(p)から(中心点までのアクションを埋める　> nStage.act
+        void CopyGlovalANS();                             // rAct, rBag にコピーする
         void Greedy();                                    // bag[-1]の振り分けの全探索
-        // ルート探索 bag[n]の中身を入れ替える
-        void RootSeach();                                 // ルート検索　親　TODO:後で作る
-        void GreedyRoot();                                // ルート決定　貪欲法
-        void Opt2(int t);                                 // ルート改善  2_Opt法
-        void ReverseRoot(int t);                          // ルート改善　逆順を試す(消費燃料を見る)
         void ForceRoot(int t);                            // ルート決定　全探索 bag[t]を指定する
-        string TimeOrderByList();
-    private:
-        bool overWeight();                                 // 荷物が15を超えているか
-        int BagWeight(vector<int> b);                      // バッグの重さ
-        long long Pow(int x, int y);                       // power
-        int CostFuelByRoot(vector<int> root);               // サークルの消費燃料
-        int ItemWeightBagIndex(int time,int bag_index);    // 重さ
-        int ItemWeight(int item_index);                    // 重さ2
+        void GreedyRoot();                                // ルート決定　貪欲法
+        void NewGreedyRoot(int t);                        // ルート決定　貪欲法 bag(t)
+        void Opt2(int t);                                 // ルート改善  2_Opt法(距離)
+        void ReverseRoot(int t);                          // ルート改善　逆順を試す(消費燃料を見る)
+        int FuelCostR(vector<int> root);                  // ルートの消費燃料
         int DistanceAB(int a_index, int itemB_index);      // 点A,点Bとの距離
         int DistanceAxy(int a_index, int x, int y);        // 点A,点(x,y)との距離
+        int BagWeight(vector<int> b);                      // バッグの重さ
+        int ItemWeightBagIndex(int time,int bag_index);    // 重さ
+        int ItemWeight(int item_index);                    // 重さ2
+        bool overWeight();                                 // 荷物が15を超えているか
+        long long Pow(int x, int y);                       // power
     };
     
     nStage::nStage()
@@ -74,11 +71,8 @@ namespace hpc {
     }
     
     void nStage::solve(){
-        PutBag();
+        SetBag();
         SetAllMap();
-        //        t.ReOrderBagRoot();
-        //        t.GreedyBag();
-        ///////////////////////
         if (bag[4].size()==0) {
             REP(t, 4){
                 ForceRoot(t);
@@ -86,13 +80,84 @@ namespace hpc {
         }else{
             Greedy();
         }
-        PutAct();
-        ans();
+        SetAction();
+        CopyGlovalANS();
     }
 
     
+    void nStage::Greedy(){
+        vector<vector<int>> init_bag(5);
+        vector<vector<int>> max_bag(4);
+        for (int i = 0; i<5; ++i) {
+            copy(bag[i].begin(),bag[i].end(),back_inserter(init_bag[i]));
+        }
+        int min_fuel = 100000000;
+        vector<int> delivery_time;
+        ////////////////////////ランダム回数//// 提出時は 16385
+        for (int q=0; q<6385; ++q) {
+            int i = q;
+            //　荷物(-1)が３以上のときはランダム
+            if (bag[4].size()>3) {
+                i=rand()%Pow(4, int(bag[4].size()));
+            }else{
+                // 荷物(-1)が３以下の時、ループが全探索回数をすぎたら終了
+                if (i>Pow(4, int(bag[4].size()))) {
+                    break;
+                }
+            }
+            //   bagを初期値に戻す
+            for (int j = 0; j<4; ++j) {
+                bag[j].clear();
+                for (int k = 0; k<int(init_bag[j].size()); ++k) {
+                    bag[j].push_back(init_bag[j][k]);
+                }
+            }
+            // 数字に基づいて　配達時間を決定
+            delivery_time.clear();
+            for (int j=0; j<int(bag[4].size()); ++j) {
+                delivery_time.push_back(i/Pow(4,j)%4);
+            }
+            // 指定した時間のバッグに詰める
+            for (int j = 0; j<int(bag[4].size()); ++j) {
+                bag[delivery_time[j]].push_back(bag[4][j]);
+            }
+            // 荷物が積載可能重量を超えていたらパス
+            if (overWeight()) {
+                continue;
+            }
+            // 回数が多いのでルートぎめは貪欲法でとく
+            GreedyRoot();
+            // 消費燃料の計算
+            int total_fuel = 0;
+            for (int t=0; t<4; ++t) {
+                total_fuel += FuelCostR(bag[t]);
+            }
+            if (total_fuel<min_fuel) {
+                min_fuel = total_fuel;
+                for (int k=0; k<4; ++k) {
+                    max_bag[k].clear();
+                    for (int l=0; l<int(bag[k].size()); ++l) {
+                        max_bag[k].push_back(bag[k][l]);
+                    }
+                }
+            }
+        }
+        //// ここまで　ランダムループ
+        /// max_bagをbagにコピー
+        for (int t=0; t<4; ++t) {
+            bag[t].clear();
+            copy(max_bag[t].begin(),max_bag[t].end(),back_inserter(bag[t]));
+        }
+    }
+    
+    
+    
+    
     //    rootから消費燃料
-    int nStage::CostFuelByRoot(vector<int> root){
+    int nStage::FuelCostR(vector<int> root){
+        if (root.size()==0) {
+            return 0;
+        }
         int truck_weight = 3;
         for (int i=0; i<int(root.size()); ++i) {
             truck_weight += ItemWeight(root[i]);
@@ -114,42 +179,48 @@ namespace hpc {
     // 方針　中心点(mid_x,midy)から最も近いものを選んでいく
     void nStage::GreedyRoot(){
         for (int t=0; t<4; ++t) {
-            // 荷物が1つの時は処理しない
-            if (bag[t].size()<=1) {
-                continue;
-            }
-            // 荷物が全探索できる個数なら全探索
-            // 個々に処理
-            if (bag[t].size()<=5) {
-                ForceRoot(t);
-                continue;
-            }
-            //
-            int min_bag_index;
-            for (int i=0; i<int(bag[t].size()); ++i) {
-                // i==0のときは中心点に近いものを探す
-                min_bag_index = i;
-                int min_distance=1000000000;
-                for (int j=i; j<int(bag[t].size());++j) {
-                    int d = 0;
-                    if (i==0) {
-                        d = DistanceAxy(j, mid_x, mid_y);
-                    }else{
-                        d = DistanceAB(i-1, j);
-                    }
-                    if (d<min_distance) {
-                        min_distance = d;
-                        min_bag_index = j;
-                    }
-                }
-                swap(bag[t][i],bag[t][min_bag_index]);
-            }
-            Opt2(t);
-            ReverseRoot(t);
+            NewGreedyRoot(t);
         }
-        return;
     }
     
+    
+    // ルート探索の貪欲法
+    // 方針　中心点(mid_x,midy)から最も近いものを選んでいく
+    void nStage::NewGreedyRoot(int t){
+        // 荷物が1つの時は処理しない
+        if (bag[t].size()<=1) {
+            return;
+        }
+        // 荷物が全探索できる個数なら全探索
+        // 個々に処理
+        if (bag[t].size()<=5) {
+            ForceRoot(t);
+            return;
+        }
+        //
+        int min_bag_index;
+        for (int i=0; i<int(bag[t].size()); ++i) {
+            // i==0のときは中心点に近いものを探す
+            min_bag_index = i;
+            int min_distance=1000000000;
+            for (int j=i; j<int(bag[t].size());++j) {
+                int d = 0;
+                if (i==0) {
+                    d = DistanceAxy(j, mid_x, mid_y);
+                }else{
+                    d = DistanceAB(i-1, j);
+                }
+                if (d<min_distance) {
+                    min_distance = d;
+                    min_bag_index = j;
+                }
+            }
+            swap(bag[t][i],bag[t][min_bag_index]);
+        }
+        Opt2(t);
+        ReverseRoot(t);
+        return;
+    }
     
     // ルート改善　2_Opt法
     // 参考　http://www.geocities.jp/m_hiroi/light/pyalgo64.html
@@ -190,7 +261,7 @@ namespace hpc {
         vector<int> root;
         copy(bag[t].begin(),bag[t].end(),back_inserter(root));
         reverse(root.begin(),root.end());
-        if (CostFuelByRoot(bag[t])>CostFuelByRoot(root)) {
+        if (FuelCostR(bag[t])>FuelCostR(root)) {
             bag[t].clear();
             copy(root.begin(), root.end(), back_inserter(bag[t]));
         }
@@ -219,7 +290,7 @@ namespace hpc {
                 int min_fuel = 1000000000;
                 int s_fuel = 0;
                 do{
-                    s_fuel = CostFuelByRoot(tmp_bag);
+                    s_fuel = FuelCostR(tmp_bag);
                     if (min_fuel>s_fuel){
                         min_fuel = s_fuel;
                         min_bag.clear();
@@ -242,83 +313,9 @@ namespace hpc {
         }
         return r;
     }
-    
-    void nStage::Greedy(){
-        vector<vector<int>> init_bag(5);
-        vector<vector<int>> max_bag(4);
-        for (int i = 0; i<5; ++i) {
-            copy(bag[i].begin(),bag[i].end(),back_inserter(init_bag[i]));
-        }
-        
-        int min_fuel = 100000000;
-        vector<int> delivery_time;
-        for (int q=0; q<6385; ++q) {////////////////////////ランダム回数//// 提出時は 16385
-            int i = q;
-            // 荷物(-1)が４つ以上の時はランダム
-            if (bag[4].size()>3) {
-                i=rand()%Pow(4, int(bag[4].size()));
-            }else{
-                if (i>Pow(4, int(bag[4].size()))) {
-                    break;
-                }
-            }
-            delivery_time.clear();
-            for (int j=0; j<int(bag[4].size()); ++j) {
-                delivery_time.push_back(i/Pow(4,j)%4);
-            }
-            //          ここに処理
-            for (int j = 0; j<4; ++j) {
-                bag[j].clear();
-                for (int k = 0; k<int(init_bag[j].size()); ++k) {
-                    bag[j].push_back(init_bag[j][k]);
-                }
-            }
-            for (int j = 0; j<int(bag[4].size()); ++j) {
-                bag[delivery_time[j]].push_back(bag[4][j]);
-            }
-            //            ここまででNEWバッグの生成完了
-            if (overWeight()) {
-                continue;
-            }
-//            GreedyBag(); // 配送順の最適化
-            GreedyRoot();
-            int total_fuel = 0;
-            for (int j=0; j<4; ++j) {
-                if (bag[j].size()==0) {
-                    continue;
-                }
-                total_fuel += CostFuelByRoot(bag[j]);
-            }
-            //            int score = aStage->field().width() * aStage->field().height() * aStage->items().count() * 10000 / total_fuel;
-            //            //printf("score = %d\n",score);
-            if (total_fuel<min_fuel) {
-                min_fuel = total_fuel;
-                for (int k=0; k<4; ++k) {
-                    max_bag[k].clear();
-                    for (int l=0; l<int(bag[k].size()); ++l) {
-                        max_bag[k].push_back(bag[k][l]);
-                    }
-                }
-            }
-            //            bagを初期値に戻す
-            for (int j = 0; j<4; ++j) {
-                bag[j].clear();
-                for (int k = 0; k<int(init_bag[j].size()); ++k) {
-                    bag[j].push_back(init_bag[j][k]);
-                }
-            }
-        }
-        for (int i=0; i<4; ++i) {
-            bag[i].clear();
-            for (int j=0; j<int(max_bag[i].size()); ++j) {
-                bag[i].push_back(max_bag[i][j]);
-            }
-        }
-        return;
-    }
-    
+
     //   初期化　bag に荷物をつめる　-1はbag[4]に
-    void nStage::PutBag(){
+    void nStage::SetBag(){
         for (int i = 0; i < aStage->items().count(); ++i) {
             //            HPC_PRINT("時間:%d 重さ:%d 配達先:%d,%d\n",aStage->items().operator[](i).period(),
             //            aStage->items().operator[](i).weight(),
@@ -334,25 +331,25 @@ namespace hpc {
     
     
     //    bagの中の荷物の順番で回るためのActionをつめる
-    void nStage::PutAct(){
+    void nStage::SetAction(){
         for (int i =0; i<4; ++i) {
             if (bag[i].size()>0) {
-                RootFromStart(i, bag[i][0]);
+                SetActionStart2A(i, bag[i][0]);
             }
             if (int(bag[i].size())>1) {
                 for (int j = 0; j<int(bag[i].size()-1); ++j) {
-                    RootAB(i, bag[i][j+1], aStage->items().operator[](bag[i][j]).destination().x,
+                    SetActionA2B(i, bag[i][j+1], aStage->items().operator[](bag[i][j]).destination().x,
                            aStage->items().operator[](bag[i][j]).destination().y);
                 }
             }
             if (bag[i].size()>0) {
-                SetActRootToStart(i, bag[i][bag[i].size()-1]);
+                SetActionB2Eond(i, bag[i][bag[i].size()-1]);
             }
         }
     }
     
     //    (n,m)地点からpへの道順をact[time]につめる
-    void nStage::RootAB(int time,int p, int n, int m){
+    void nStage::SetActionA2B(int time,int p, int n, int m){
         if (bag[time].size()==0) {
             return;
         }
@@ -372,7 +369,7 @@ namespace hpc {
         }
     }
     
-    void nStage::RootFromStart(int time,int p){
+    void nStage::SetActionStart2A(int time,int p){
         if (bag[time].size()==0) {
             return;
         }
@@ -392,7 +389,7 @@ namespace hpc {
         }
     }
     
-    void nStage::SetActRootToStart(int time,int p){
+    void nStage::SetActionB2Eond(int time,int p){
         if (bag[time].size()==0) {
             return;
         }
@@ -442,7 +439,7 @@ namespace hpc {
         }
     }
     
-    void nStage::ans(){
+    void nStage::CopyGlovalANS(){
         rAct = act;
         rBag = bag;
     }
@@ -500,6 +497,7 @@ namespace hpc {
     /// @param[in] aStage 現在のステージ。
     void Answer::Init(const Stage& aStage)
     {
+        stage_n ++;
         nStage t;
         t.getStage(aStage);
         t.solve();
@@ -527,20 +525,7 @@ namespace hpc {
     /// @param[in] aItemGroup 荷物グループ。
     void Answer::InitPeriod(const Stage& aStage, ItemGroup& aItemGroup)
     {
-        //        if (aStage.period() == 0) {
-        //            return;
-        //        }
-        //        for (int i = 0; i < aStage.items().count(); ++i) {
-        //            // まだ配達されてない荷物かどうか調べる
-        //            if (aStage.getTransportState(i) == TransportState_NotTransported) {
-        //                // 配達されてない荷物なので積み込む
-        //                aItemGroup.addItem(i);
-        //            }
-        //        }
-        //        HPC_PRINT("つめ込み作業===============================\n");
-        //        HPC_PRINT("time: %d\n",aStage.period());
-        
-        for (int i=0; i<int(rBag[aStage.period()].size()); ++i) {
+            for (int i=0; i<int(rBag[aStage.period()].size()); ++i) {
             if (aStage.getTransportState(rBag[aStage.period()][i])==TransportState_NotTransported){
                 aItemGroup.addItem(rBag[aStage.period()][i]);
                 //                HPC_PRINT("詰め込み荷物: %d\n", rBag[aStage.period()][i]);
@@ -556,23 +541,6 @@ namespace hpc {
     /// @return これから行う動作を表す Action クラス。
     Action Answer::GetNextAction(const Stage& aStage)
     {
-        //        static Random random; // デフォルトのシード値を使う
-        //        static Pos prev; // 初期値は重要ではない。(前のゲームの値が残っていても気にしない)
-        //        for (int retry = 0; ; ++retry) {
-        //            Action a = static_cast<Action>(random.randTerm(4));
-        //            Pos nextPos = aStage.truck().pos().move(a);
-        //            if (aStage.field().isWall(nextPos) == false) { // 動けるか
-        //                if (retry < 50 && nextPos == prev) {
-        //                    // 前にいた場所を避ける。
-        //                    // これで、同じような場所をウロウロしてなかなか進まないのを防げる。
-        //                    // ただし、50回やっても見つからないときは、諦める。
-        //                    continue;
-        //                }
-        //                prev = aStage.truck().pos();
-        //                return a;
-        //            }
-        //        }
-        //
         Action ac = rAct[aStage.period()].front();
         rAct[aStage.period()].pop();
         //        HPC_PRINT("time: %d  Action: %u  %dx%d 残りの荷物: ",aStage.period(),ac,aStage.truck().pos().x,aStage.truck().pos().y);
@@ -609,14 +577,11 @@ namespace hpc {
     void Answer::Finalize(const Stage& aStage, StageState aStageState, int aScore)
     {
         if (aStageState == StageState_Failed) {
-            // 失敗したかどうかは、ここで検知できます。
-            //printf("\nno.%03d: 失敗",stag_i);
             failed_stage_n++;
         }
         else if (aStageState == StageState_TurnLimit) {
             // ターン数オーバーしたかどうかは、ここで検知できます。
         }else{
-            //printf("\nno.%03d: 成功",stag_i);
             successd_stage_n++;
         }
     }
