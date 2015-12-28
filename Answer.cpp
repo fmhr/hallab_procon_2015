@@ -98,8 +98,9 @@ namespace hpc {
         ////////////////////////ランダム回数//// 提出時は 16385
         for (int q=0; q<6385; ++q) {
             int i = q;
-            //　荷物(-1)が３以上のときはランダム
-            if (bag[4].size()>3) {
+            //　荷物(-1)がZ以上のときはランダム
+            int Z = 3;
+            if (bag[4].size()>Z) {
                 i=rand()%Pow(4, int(bag[4].size()));
             }else{
                 // 荷物(-1)が３以下の時、ループが全探索回数をすぎたら終了
@@ -128,7 +129,11 @@ namespace hpc {
                 continue;
             }
             // 回数が多いのでルートぎめは貪欲法でとく
-            GreedyRoot();
+            if (bag[4].size()>Z) {
+                GreedyRoot();
+            }else{
+                REP(t, 4){ForceRoot(t);}
+            }
             // 消費燃料の計算
             int total_fuel = 0;
             for (int t=0; t<4; ++t) {
@@ -307,38 +312,39 @@ namespace hpc {
     // ルート全探索
     void nStage::ForceRoot(int time){
         if(bag[time].size()<=1){return;}
-            string sorted_key;
-            vector<int> tmp_bag, min_bag;
-            copy(bag[time].begin(), bag[time].end(), back_inserter(tmp_bag));
-            sort(tmp_bag.begin(),tmp_bag.end());
+        string sorted_key= "";
+        vector<int> tmp_bag;
+        copy(bag[time].begin(), bag[time].end(), back_inserter(tmp_bag));
+        sort(tmp_bag.begin(),tmp_bag.end());
+        for (int j=0; j<int(bag[time].size()); ++j) {
+            sorted_key.push_back('a'+tmp_bag[j]);
+        }
+        if(mp.count(sorted_key) != 0) {
+            // ハッシュが設定されている場合の処理
+            string abcd_best = mp[sorted_key];
             for (int j=0; j<int(bag[time].size()); ++j) {
-                sorted_key.push_back('a'+tmp_bag[j]);
+                bag[time][j] = abcd_best.at(j)-'a';
             }
-            if(mp.count(sorted_key) != 0) {
-                // ハッシュが設定されている場合の処理
-                string abcd_best = mp[sorted_key];
-                for (int j=0; j<int(bag[time].size()); ++j) {
-                    bag[time][j] = abcd_best.at(j)-'a';
+        } else {
+            // keyが設定されてない時
+            vector<int> min_bag;
+            int min_fuel = inf;
+            int s_fuel = 0;
+            do{
+                s_fuel = FuelCostR(tmp_bag);
+                if (min_fuel>s_fuel){
+                    min_fuel = s_fuel;
+                    min_bag.clear();
+                    copy(tmp_bag.begin(), tmp_bag.end(), back_inserter(min_bag));
                 }
-            } else {
-                // keyが設定されてない時
-                int min_fuel = inf;
-                int s_fuel = 0;
-                do{
-                    s_fuel = FuelCostR(tmp_bag);
-                    if (min_fuel>s_fuel){
-                        min_fuel = s_fuel;
-                        min_bag.clear();
-                        copy(tmp_bag.begin(), tmp_bag.end(), back_inserter(min_bag));
-                    }
-                }while (next_permutation(tmp_bag.begin(),tmp_bag.end()));
-                string best_key;
-                for (int j=0; j<int(bag[time].size()); ++j) {
-                    bag[time][j] = min_bag[j];
-                    best_key.push_back('a'+min_bag[j]);
-                }
-                mp[sorted_key] = best_key;
+            }while (next_permutation(tmp_bag.begin(),tmp_bag.end()));
+            string best_key;
+            for (int j=0; j<int(bag[time].size()); ++j) {
+                bag[time][j] = min_bag[j];
+                best_key.push_back('a'+min_bag[j]);
             }
+            mp[sorted_key] = best_key;
+        }
     }
     
     long long nStage::Pow(int _x, int _y){
