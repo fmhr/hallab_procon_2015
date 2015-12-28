@@ -8,6 +8,9 @@
 #include "algorithm"
 #include "unordered_map"
 
+#define FOR(i,a,b) for(int i=(a);i<int(b);++i)
+#define REP(i,n)  FOR(i,0,n)
+
 using namespace std;
 
 namespace hpc {
@@ -19,8 +22,8 @@ namespace hpc {
     vector<vector<int>> rBag;    // rBag[時間帯] = 荷物リスト        nStage.bag をコピーする
     const int x[]={-1,1,0,0};    // 上下左右のActionの選択用
     const int y[]={0,0,-1,+1};
-    const Action a[]={Action_MoveLeft,Action_MoveRight,Action_MoveDown,Action_MoveUp};
-    const Action reverse_a[]={Action_MoveRight,Action_MoveLeft,Action_MoveUp,Action_MoveDown};
+    const Action actionList[]={Action_MoveLeft,Action_MoveRight,Action_MoveDown,Action_MoveUp};
+    const Action actionListReversed[]={Action_MoveRight,Action_MoveLeft,Action_MoveUp,Action_MoveDown};
     
     // 毎ステージで使うクラス　aStageの混合しないように注意
     class nStage{
@@ -34,12 +37,12 @@ namespace hpc {
         void getStage(const Stage& aStageSub);
         void solve();
         int mid_x,mid_y;                                // 中心点
-        void calAllMap();                               // allMapを埋める
-        void rootFromStart(int time,int p);             // 中心点からPos(p)までのアクションを埋める > nStage.act
-        void rootAB(int time,int p, int n, int m);      // Pos(p)から(n,m)までのあkyションを埋める > nStage.act
-        void rootToStart(int time,int p);               // Pos(p)から(中心点までのアクションを埋める　> nStage.act
-        void putBag();                                  // 荷物リストからbag[時間帯]に入れる
-        void putAct();                                  // 配送リストからrootFromStart(), rootAB(), rootToStart()を呼び出す
+        void SetAllMap();                               // allMapを埋める
+        void RootFromStart(int time,int p);             // 中心点からPos(p)までのアクションを埋める > nStage.act
+        void RootAB(int time,int p, int n, int m);      // Pos(p)から(n,m)までのあkyションを埋める > nStage.act
+        void SetActRootToStart(int time,int p);               // Pos(p)から(中心点までのアクションを埋める　> nStage.act
+        void PutBag();                                  // 荷物リストからbag[時間帯]に入れる
+        void PutAct();                                  // 配送リストからrootFromStart(), rootAB(), rootToStart()を呼び出す
         void ans();                                     // rAct, rBag にコピーする
         void Greedy();                                    // bag[-1]の振り分けの全探索
         // ルート探索 bag[n]の中身を入れ替える
@@ -50,17 +53,15 @@ namespace hpc {
         void ForceRoot(int t);                            // ルート決定　全探索 bag[t]を指定する
         void GreedyBag();                                 // bagの中の荷物を貪欲に並び替える
         string TimeOrderByList();
-        // ↓使ってないもの(public)
     private:
         bool overWeight();                                 // 荷物が15を超えているか
+        int BagWeight(vector<int> b);                      // バッグの重さ
         long long Pow(int x, int y);                       // power
-        int RootCostFuel(vector<int> root);               // サークルの消費燃料
-        int RootCostLength(vector<int> root);             // サークルの距離　TODO:あとで作る
+        int CostFuelByRoot(vector<int> root);               // サークルの消費燃料
         int ItemWeightBagIndex(int time,int bag_index);    // 重さ
         int ItemWeight(int item_index);                    // 重さ2
         int DistanceAB(int a_index, int itemB_index);      // 点A,点Bとの距離
         int DistanceAxy(int a_index, int x, int y);        // 点A,点(x,y)との距離
-        // ↓使ってないもの(private)
     };
     
     nStage::nStage()
@@ -74,187 +75,23 @@ namespace hpc {
     }
     
     void nStage::solve(){
-        //printf("----------------------------------↓ %d ↓----------------\n",stag_i++);
-        putBag();
-        //        t.RePutBag();
-        calAllMap();
+        PutBag();
+        SetAllMap();
         //        t.ReOrderBagRoot();
         //        t.GreedyBag();
         Greedy();
-        putAct();
+        PutAct();
         ans();
     }
-    
-    //     バッグに詰める　-1はbag[4]に
-    void nStage::putBag(){
-        for (int i = 0; i < aStage->items().count(); ++i) {
-            //            HPC_PRINT("時間:%d 重さ:%d 配達先:%d,%d\n",aStage->items().operator[](i).period(),
-            //            aStage->items().operator[](i).weight(),
-            //            aStage->items().operator[](i).destination().x,
-            //            aStage->items().operator[](i).destination().y);
-            if (aStage->items().operator[](i).period()==-1) { // 時間未指定[-1]はbag[4]にいれる
-                bag[4].push_back(i);
-            }else{
-                bag[aStage->items().operator[](i).period()].push_back(i);
-            }
-        }
-    }
-    
 
     
-    //    (暫定)　かごの順番で回るためのActをつめる
-    void nStage::putAct(){
-        for (int i =0; i<4; ++i) {
-            if (bag[i].size()>0) {
-                rootFromStart(i, bag[i][0]);
-            }
-            if (int(bag[i].size())>1) {
-                for (int j = 0; j<int(bag[i].size()-1); ++j) {
-                    rootAB(i, bag[i][j+1], aStage->items().operator[](bag[i][j]).destination().x,
-                           aStage->items().operator[](bag[i][j]).destination().y);
-                }
-            }
-            if (bag[i].size()>0) {
-                rootToStart(i, bag[i][bag[i].size()-1]);
-            }
-        }
-    }
-    
-    //    (n,m)地点からpへの道順をact[time]につめる
-    void nStage::rootAB(int time,int p, int n, int m){
-        if (bag[time].size()==0) {
-            return;
-        }
-        int n_x = n;
-        int n_y = m;
-        int step = allMap[p][m][n];
-        while (step>0) {
-            for (int i=0; i<4; ++i) {
-                if (allMap[p][n_y+y[i]][n_x+x[i]]==step-1 && aStage->field().isWall(n_x+x[i],n_y+y[i])==false) {
-                    n_x += x[i];
-                    n_y += y[i];
-                    step = allMap[p][n_y][n_x];
-                    act[time].push(a[i]);
-                    break;
-                }
-            }
-        }
-    }
-    
-    void nStage::rootFromStart(int time,int p){
-        if (bag[time].size()==0) {
-            return;
-        }
-        int n_x = mid_x;
-        int n_y = mid_y;
-        int step = allMap[p][n_y][n_x];
-        while (step>0) {
-            for (int i=0; i<4; ++i) {
-                if (allMap[p][n_y+y[i]][n_x+x[i]]==step-1 && aStage->field().isWall(n_x+x[i],n_y+y[i])==false) {
-                    n_x += x[i];
-                    n_y += y[i];
-                    step = allMap[p][n_y][n_x];
-                    act[time].push(a[i]);
-                    break;
-                }
-            }
-        }
-    }
-    
-    void nStage::rootToStart(int time,int p){
-        if (bag[time].size()==0) {
-            return;
-        }
-        int n_x = aStage->field().width()/2;
-        int n_y = aStage->field().height()/2;
-        int step = allMap[p][n_y][n_x];
-        stack<Action> s;
-        while (step>0) {
-            for (int i=0; i<4; ++i) {
-                if (allMap[p][n_y+y[i]][n_x+x[i]]==step-1 && aStage->field().isWall(n_x+x[i],n_y+y[i])==false) {
-                    n_x = n_x+x[i];
-                    n_y = n_y+y[i];
-                    step = allMap[p][n_y][n_x];
-                    s.push(reverse_a[i]);
-                    break;
-                }
-            }
-        }
-        while (s.empty()==false) {
-            act[time].push(s.top());
-            s.pop();
-        }
-    }
-    
-    void nStage::calAllMap(){
-        queue<Pos> q;
-        for (int z=0; z<aStage->items().count(); ++z) {
-            int start_x =aStage->items().operator[](z).destination().x;
-            int start_y =aStage->items().operator[](z).destination().y;
-            q.push(Pos(start_x,start_y));
-            while (q.empty()==false) {
-                for (int i=0; i<4; ++i) {
-                    int n_x = q.front().x+x[i];
-                    int n_y = q.front().y+y[i];
-                    if (n_x==start_x && n_y==start_y) {
-                        continue;
-                    }
-                    if (aStage->field().isWall(n_x, n_y)==false){
-                        if (allMap[z][n_y][n_x]==0) {
-                            q.push(Pos(n_x,n_y));
-                            allMap[z][n_y][n_x] = allMap[z][q.front().y][q.front().x]+1;
-                        }
-                    }
-                }
-                q.pop();
-            }
-            //            for (int n = aStage->field().height()-1; n>=0; --n) {
-            //                for (int m = 0; m<aStage->field().width(); ++m) {
-            //                    if (aStage->field().isWall(m,n)==true) {
-            //                        HPC_PRINT("..");
-            //                    }else{;
-            //                        HPC_PRINT("%02d",allMap[z][n][m]);
-            //                    }
-            //                }
-            //                HPC_PRINT("\n");
-            //            }
-            //            HPC_PRINT("\n");
-        }
-        return;
-    }
-    
-    void nStage::ans(){
-        rAct = act;
-        rBag = bag;
-    }
-    
-    
-    int nStage::ItemWeightBagIndex(int time,int bag_index){
-        return ItemWeight(bag[time][bag_index]);
-    }
-    
-    int nStage::ItemWeight(int item_index){
-        return aStage->items().operator[](item_index).weight();
-    }
-    
-    int nStage::DistanceAB(int itemA_index, int itemB_index){
-        return allMap[itemA_index][aStage->items().operator[](itemB_index).destination().y][aStage->items().operator[](itemB_index).destination().x];
-    }
-    
-    int nStage::DistanceAxy(int a_index, int _x, int _y){
-        return allMap[a_index][_y][_x];
-    }
-    
     //    rootから消費燃料
-    int nStage::RootCostFuel(vector<int> root){
+    int nStage::CostFuelByRoot(vector<int> root){
         int truck_weight = 3;
         for (int i=0; i<int(root.size()); ++i) {
             truck_weight += ItemWeight(root[i]);
         }
-        if (truck_weight>(15+3)) {
-            ////printf("過積載");
-            return 999999999;
-        }
+        assert(truck_weight<=18);
         int fuel_consumption = 0;
         fuel_consumption += truck_weight*DistanceAxy(root[0], mid_x, mid_y);
         truck_weight -= ItemWeight(root[0]);
@@ -262,7 +99,7 @@ namespace hpc {
             fuel_consumption += truck_weight*DistanceAB(root[i], root[i+1]);
             truck_weight -= ItemWeight(root[i+1]);
         }
-        truck_weight = 3;
+        assert(truck_weight==3);
         fuel_consumption += truck_weight*DistanceAxy(root[int(root.size()-1)], mid_x, mid_y);
         return fuel_consumption;
     }
@@ -301,7 +138,7 @@ namespace hpc {
                 }
                 swap(bag[t][i],bag[t][min_bag_index]);
             }
-//            Opt2(t);
+            Opt2(t);
             ReverseRoot(t);
         }
         return;
@@ -322,19 +159,13 @@ namespace hpc {
                     }else{
                         j1 = j+1;
                     }
-                    int l1 = 0;
-                    int l2 = 0;
-                    int l3 = 0;
-                    int l4 = 0;
+                    int l1,l2,l3,l4;
                     if (i!=0 || j1!=0) {
                         l1 = DistanceAB(bag[t][i], bag[t][i1]);
                         l2 = DistanceAB(bag[t][j], bag[t][j1]);
                         l3 = DistanceAB(bag[t][i], bag[t][j]);
                         l4 = DistanceAB(bag[t][i1], bag[t][j1]);
                         if (l1+l2>l3+l4) {
-                            //                        vector<int> new_path;
-                            //                        copy(bag[t][i1], bag[t][j+1], back_inserter(new_path));
-                            //                        swap(bag[t][i1], bag[t][j]);
                             reverse(bag[t].begin(), bag[t].end());
                             reverse(bag[t].end()-j-1, bag[t].end()-i1);
                             count += 1;
@@ -354,7 +185,7 @@ namespace hpc {
         vector<int> root;
         copy(bag[t].begin(),bag[t].end(),back_inserter(root));
         reverse(root.begin(),root.end());
-        if (RootCostFuel(bag[t])>RootCostFuel(root)) {
+        if (CostFuelByRoot(bag[t])>CostFuelByRoot(root)) {
             bag[t].clear();
             copy(root.begin(), root.end(), back_inserter(bag[t]));
         }
@@ -382,7 +213,7 @@ namespace hpc {
                 int min_fuel = 1000000000;
                 int s_fuel = 0;
                 do{
-                    s_fuel = RootCostFuel(tmp_bag);
+                    s_fuel = CostFuelByRoot(tmp_bag);
                     if (min_fuel>s_fuel){
                         min_fuel = s_fuel;
                         min_bag.clear();
@@ -419,7 +250,7 @@ namespace hpc {
                 int min_fuel = 1000000000;
                 int s_fuel = 0;
                 do{
-                    s_fuel = RootCostFuel(tmp_bag);
+                    s_fuel = CostFuelByRoot(tmp_bag);
                     if (min_fuel>s_fuel){
                         min_fuel = s_fuel;
                         min_bag.clear();
@@ -497,7 +328,7 @@ namespace hpc {
                 if (bag[j].size()==0) {
                     continue;
                 }
-                total_fuel += RootCostFuel(bag[j]);
+                total_fuel += CostFuelByRoot(bag[j]);
             }
             //            int score = aStage->field().width() * aStage->field().height() * aStage->items().count() * 10000 / total_fuel;
             //            //printf("score = %d\n",score);
@@ -527,20 +358,177 @@ namespace hpc {
         return;
     }
     
-
+    //   初期化　bag に荷物をつめる　-1はbag[4]に
+    void nStage::PutBag(){
+        for (int i = 0; i < aStage->items().count(); ++i) {
+            //            HPC_PRINT("時間:%d 重さ:%d 配達先:%d,%d\n",aStage->items().operator[](i).period(),
+            //            aStage->items().operator[](i).weight(),
+            //            aStage->items().operator[](i).destination().x,
+            //            aStage->items().operator[](i).destination().y);
+            if (aStage->items().operator[](i).period()==-1) { // 時間未指定[-1]はbag[4]にいれる
+                bag[4].push_back(i);
+            }else{
+                bag[aStage->items().operator[](i).period()].push_back(i);
+            }
+        }
+    }
+    
+    
+    //    bagの中の荷物の順番で回るためのActionをつめる
+    void nStage::PutAct(){
+        for (int i =0; i<4; ++i) {
+            if (bag[i].size()>0) {
+                RootFromStart(i, bag[i][0]);
+            }
+            if (int(bag[i].size())>1) {
+                for (int j = 0; j<int(bag[i].size()-1); ++j) {
+                    RootAB(i, bag[i][j+1], aStage->items().operator[](bag[i][j]).destination().x,
+                           aStage->items().operator[](bag[i][j]).destination().y);
+                }
+            }
+            if (bag[i].size()>0) {
+                SetActRootToStart(i, bag[i][bag[i].size()-1]);
+            }
+        }
+    }
+    
+    //    (n,m)地点からpへの道順をact[time]につめる
+    void nStage::RootAB(int time,int p, int n, int m){
+        if (bag[time].size()==0) {
+            return;
+        }
+        int n_x = n;
+        int n_y = m;
+        int step = allMap[p][m][n];
+        while (step>0) {
+            for (int i=0; i<4; ++i) {
+                if (allMap[p][n_y+y[i]][n_x+x[i]]==step-1 && aStage->field().isWall(n_x+x[i],n_y+y[i])==false) {
+                    n_x += x[i];
+                    n_y += y[i];
+                    step = allMap[p][n_y][n_x];
+                    act[time].push(actionList[i]);
+                    break;
+                }
+            }
+        }
+    }
+    
+    void nStage::RootFromStart(int time,int p){
+        if (bag[time].size()==0) {
+            return;
+        }
+        int n_x = mid_x;
+        int n_y = mid_y;
+        int step = allMap[p][n_y][n_x];
+        while (step>0) {
+            for (int i=0; i<4; ++i) {
+                if (allMap[p][n_y+y[i]][n_x+x[i]]==step-1 && aStage->field().isWall(n_x+x[i],n_y+y[i])==false) {
+                    n_x += x[i];
+                    n_y += y[i];
+                    step = allMap[p][n_y][n_x];
+                    act[time].push(actionList[i]);
+                    break;
+                }
+            }
+        }
+    }
+    
+    void nStage::SetActRootToStart(int time,int p){
+        if (bag[time].size()==0) {
+            return;
+        }
+        int n_x = aStage->field().width()/2;
+        int n_y = aStage->field().height()/2;
+        int step = allMap[p][n_y][n_x];
+        stack<Action> s;
+        while (step>0) {
+            for (int i=0; i<4; ++i) {
+                if (allMap[p][n_y+y[i]][n_x+x[i]]==step-1 && aStage->field().isWall(n_x+x[i],n_y+y[i])==false) {
+                    n_x = n_x+x[i];
+                    n_y = n_y+y[i];
+                    step = allMap[p][n_y][n_x];
+                    s.push(actionListReversed[i]);
+                    break;
+                }
+            }
+        }
+        while (s.empty()==false) {
+            act[time].push(s.top());
+            s.pop();
+        }
+    }
+    
+    void nStage::SetAllMap(){
+        queue<Pos> q;
+        for (int z=0; z<aStage->items().count(); ++z) {
+            int start_x =aStage->items().operator[](z).destination().x;
+            int start_y =aStage->items().operator[](z).destination().y;
+            q.push(Pos(start_x,start_y));
+            while (q.empty()==false) {
+                for (int i=0; i<4; ++i) {
+                    int n_x = q.front().x+x[i];
+                    int n_y = q.front().y+y[i];
+                    if (n_x==start_x && n_y==start_y) {
+                        continue;
+                    }
+                    if (aStage->field().isWall(n_x, n_y)==false){
+                        if (allMap[z][n_y][n_x]==0) {
+                            q.push(Pos(n_x,n_y));
+                            allMap[z][n_y][n_x] = allMap[z][q.front().y][q.front().x]+1;
+                        }
+                    }
+                }
+                q.pop();
+            }
+        }
+    }
+    
+    void nStage::ans(){
+        rAct = act;
+        rBag = bag;
+    }
+    
+    
+    int nStage::ItemWeightBagIndex(int time,int item_index){
+        return ItemWeight(bag[time][item_index]);
+    }
+    
+    int nStage::ItemWeight(int id){
+        return aStage->items().operator[](id).weight();
+    }
+    
+    int nStage::DistanceAB(int itemA_index, int itemB_index){
+        int i_x,i_y;
+        if (itemA_index==99 || itemB_index==99) {
+            i_x = mid_x;
+            i_y = mid_y;
+        }else{
+            i_x = aStage->items().operator[](itemB_index).destination().x;
+            i_y = aStage->items().operator[](itemB_index).destination().y;
+        }
+        return allMap[itemA_index][i_y][i_x];
+    }
+    
+    int nStage::DistanceAxy(int a_index, int _x, int _y){
+        return allMap[a_index][_y][_x];
+    }
     
     bool nStage::overWeight(){
-        int w ;
-        for (int j = 0; j<4; ++j) {
-            w = 0;
-            for (int k=0; k<int(bag[j].size()); ++k) {
-                w+=ItemWeight(bag[j][k]);
-            }
+        for (int t = 0; t<4; ++t) {
+            int w = BagWeight(bag[t]);
             if (w>15) {
                 return true;
             }
         }
         return false;
+    }
+    
+    int nStage::BagWeight(vector<int> b){
+        int w = 0;
+        REP(i, b.size()){
+            w += ItemWeight(b[i]);
+        }
+        return w;
     }
 
     
