@@ -51,7 +51,6 @@ namespace hpc {
         void Opt2(int t);                                 // ルート改善  2_Opt法
         void ReverseRoot(int t);                          // ルート改善　逆順を試す(消費燃料を見る)
         void ForceRoot(int t);                            // ルート決定　全探索 bag[t]を指定する
-        void GreedyBag();                                 // bagの中の荷物を貪欲に並び替える
         string TimeOrderByList();
     private:
         bool overWeight();                                 // 荷物が15を超えているか
@@ -177,7 +176,6 @@ namespace hpc {
                 break;
             }
         }
-        return;
     }
     
     // ルート改善　逆順のチェック
@@ -194,19 +192,20 @@ namespace hpc {
     
     
     // ルート全探索
-    void nStage::ForceRoot(int i){
+    void nStage::ForceRoot(int time){
+        if(bag[time].size()<=1){return;}
             string sorted_key;
             vector<int> tmp_bag, min_bag;
-            copy(bag[i].begin(), bag[i].end(), back_inserter(tmp_bag));
+            copy(bag[time].begin(), bag[time].end(), back_inserter(tmp_bag));
             sort(tmp_bag.begin(),tmp_bag.end());
-            for (int j=0; j<int(bag[i].size()); ++j) {
+            for (int j=0; j<int(bag[time].size()); ++j) {
                 sorted_key.push_back('a'+tmp_bag[j]);
             }
             if(mp.count(sorted_key) != 0) {
                 // ハッシュが設定されている場合の処理
                 string abcd_best = mp[sorted_key];
-                for (int j=0; j<int(bag[i].size()); ++j) {
-                    bag[i][j] = abcd_best.at(j)-'a';
+                for (int j=0; j<int(bag[time].size()); ++j) {
+                    bag[time][j] = abcd_best.at(j)-'a';
                 }
             } else {
                 // keyが設定されてない時
@@ -221,50 +220,12 @@ namespace hpc {
                     }
                 }while (next_permutation(tmp_bag.begin(),tmp_bag.end()));
                 string best_key;
-                for (int j=0; j<int(bag[i].size()); ++j) {
-                    bag[i][j] = min_bag[j];
+                for (int j=0; j<int(bag[time].size()); ++j) {
+                    bag[time][j] = min_bag[j];
                     best_key.push_back('a'+min_bag[j]);
                 }
                 mp[sorted_key] = best_key;
             }
-    }
-    
-    void nStage::GreedyBag(){
-        for (int i=0; i<4; ++i) {
-            if(bag[i].size()<=1){continue;}
-            string sorted_key;
-            vector<int> tmp_bag, min_bag;
-            copy(bag[i].begin(), bag[i].end(), back_inserter(tmp_bag));
-            sort(tmp_bag.begin(),tmp_bag.end());
-            for (int j=0; j<int(bag[i].size()); ++j) {
-                sorted_key.push_back('a'+tmp_bag[j]);
-            }
-            if(mp.count(sorted_key) != 0) {
-                // ハッシュが設定されている場合の処理
-                string abcd_best = mp[sorted_key];
-                for (int j=0; j<int(bag[i].size()); ++j) {
-                    bag[i][j] = abcd_best.at(j)-'a';
-                }
-            } else {
-                // keyが設定されてない時
-                int min_fuel = 1000000000;
-                int s_fuel = 0;
-                do{
-                    s_fuel = CostFuelByRoot(tmp_bag);
-                    if (min_fuel>s_fuel){
-                        min_fuel = s_fuel;
-                        min_bag.clear();
-                        copy(tmp_bag.begin(), tmp_bag.end(), back_inserter(min_bag));
-                    }
-                }while (next_permutation(tmp_bag.begin(),tmp_bag.end()));
-                string best_key;
-                for (int j=0; j<int(bag[i].size()); ++j) {
-                    bag[i][j] = min_bag[j];
-                    best_key.push_back('a'+min_bag[j]);
-                }
-                mp[sorted_key] = best_key;
-            }
-        }
     }
     
     long long nStage::Pow(int _x, int _y){
@@ -282,7 +243,9 @@ namespace hpc {
         }
         //printf("(%d)\n",int(bag[4].size()));
         if (bag[4].size()==0) {
-            GreedyBag();
+            REP(t, 4){
+                ForceRoot(t);
+            }
             return;
         }
         vector<vector<int>> init_bag(5);
