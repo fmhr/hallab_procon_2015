@@ -32,6 +32,7 @@ namespace hpc {
         nStage();                                       // 初期化? nStage::nStage()
         const Stage *aStage;                            // nStage内でaStageを参照するためのもの
         void getStage(const Stage& aStageSub);
+        void solve();
         int mid_x,mid_y;                                // 中心点
         void calAllMap();                               // allMapを埋める
         void rootFromStart(int time,int p);             // 中心点からPos(p)までのアクションを埋める > nStage.act
@@ -70,6 +71,18 @@ namespace hpc {
         aStage=&aStageSub;
         mid_x = aStage->field().width()/2;
         mid_y = aStage->field().height()/2;
+    }
+    
+    void nStage::solve(){
+        //printf("----------------------------------↓ %d ↓----------------\n",stag_i++);
+        putBag();
+        //        t.RePutBag();
+        calAllMap();
+        //        t.ReOrderBagRoot();
+        //        t.GreedyBag();
+        Greedy();
+        putAct();
+        ans();
     }
     
     //     バッグに詰める　-1はbag[4]に
@@ -529,22 +542,7 @@ namespace hpc {
         }
         return false;
     }
-    
-    
-    //    ========================================================================== solve
-    void solve(const Stage& aStage){
-        nStage t;
-        t.getStage(aStage);
-        //printf("----------------------------------↓ %d ↓----------------\n",stag_i++);
-        t.putBag();
-        //        t.RePutBag();
-        t.calAllMap();
-        //        t.ReOrderBagRoot();
-        //        t.GreedyBag();
-        t.Greedy();
-        t.putAct();
-        t.ans();
-    }
+
     
     
     //------------------------------------------------------------------------------
@@ -555,7 +553,10 @@ namespace hpc {
     /// @param[in] aStage 現在のステージ。
     void Answer::Init(const Stage& aStage)
     {
-        solve(aStage);
+        nStage t;
+        t.getStage(aStage);
+        t.solve();
+        /////////////////////////////////////////////////////////////////
         //        HPC_PRINT("debug++++++++++++++++++++++++++++++++++++++++++\n");
         //        for (int i=0; i<4; i++) {
         //            HPC_PRINT("時間帯: %d 荷物の数: %lu   (",i,rBag[i].size());
@@ -671,6 +672,5 @@ namespace hpc {
             //printf("\nno.%03d: 成功",stag_i);
             successd_stage_n++;
         }
-        //printf(" (%07d)\nTOTAL: %d/%d\n",aStage.score(),successd_stage_n,successd_stage_n+failed_stage_n);
     }
 }
