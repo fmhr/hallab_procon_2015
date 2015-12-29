@@ -14,6 +14,8 @@
 
 using namespace std;
 
+
+
 namespace hpc {
     int stage_n;                // ステージナンバー
     int successd_stage_n;
@@ -53,6 +55,7 @@ namespace hpc {
         void Opt2Fuel(int t);                             // ルート改善  2_Opt法(燃料)
         void ReverseRoot(int t);                          // ルート改善　逆順を試す(消費燃料を見る)
         int FuelCostR(vector<int> root);                  // ルートの消費燃料
+        void ReplaceBag();                                  // 荷物を他のバッグにうつす
         int DistanceAB(int a_index, int itemB_index);      // 点A,点Bとの距離
         int DistanceAxy(int a_index, int x, int y);        // 点A,点(x,y)との距離
         int BagWeight(vector<int> b);                      // バッグの重さ
@@ -81,6 +84,7 @@ namespace hpc {
             }
         }else{
             Greedy();
+            ReplaceBag();
         }
         SetAction();
         CopyGlovalANS();
@@ -100,7 +104,7 @@ namespace hpc {
             int i = q;
             //　荷物(-1)がZ以上のときはランダム
             int Z = 3;
-            if (bag[4].size()>Z) {
+            if (int(bag[4].size())>Z) {
                 i=rand()%Pow(4, int(bag[4].size()));
             }else{
                 // 荷物(-1)が３以下の時、ループが全探索回数をすぎたら終了
@@ -129,7 +133,7 @@ namespace hpc {
                 continue;
             }
             // 回数が多いのでルートぎめは貪欲法でとく
-            if (bag[4].size()>Z) {
+            if (int(bag[4].size())>Z) {
                 GreedyRoot();
             }else{
                 REP(t, 4){ForceRoot(t);}
@@ -158,6 +162,111 @@ namespace hpc {
     }
     
     
+    
+    void nStage::ReplaceBag(){
+        vector<int> baglist(bag[4].size());     // index = bag[4]_index
+        vector<int> can_replace(20);
+        REP(t, 4){
+            REP(i, bag[t].size()){
+                REP(j, bag[4].size()){
+                    if (bag[t][i]==bag[4][j]) {
+                        baglist[j] = t;
+                    }
+                }
+            }
+        }
+        REP(i, bag[4].size()){
+            can_replace[bag[4][i]] = 1;
+        }
+        ///// ループするならここ
+        int count; // ループしても改善点がみつからないとき(count==0)にループを抜ける
+        int loop_count = 0;
+        while (true) {
+            loop_count++;
+            count = 0;
+            REP(t,4){
+                REP(i, bag[t].size()){ // ひとつえらぶ
+                    if (can_replace[bag[t][i]]!=1) {
+                        continue;
+                    }
+                    int d1 = 0;
+                    int a1,b1; // 両端のindex
+                    if (i==0) {
+                        d1 -= DistanceAB(bag[t][i], 99);
+                        a1 = 99;
+                    }else{
+                        d1 -= DistanceAB(bag[t][i], bag[t][i-1]);
+                        a1 = bag[t][i-1];
+                    }
+                    if (i==int(bag[t].size()-1)) {
+                        d1 -= DistanceAB(int(bag[t][i]), 99);
+                        b1 =99;
+                    }else{
+                        d1 -= DistanceAB(int(bag[t][i]), bag[t][i+1]);
+                        b1 = bag[t][i+1];
+                    }
+                    d1 += DistanceAB(a1, b1);
+                    // 挿入先の探索
+                    int min_d2 = inf;
+                    int d2 = 0;
+                    int a2=0;
+                    int b2=0;
+                    int min_t2 = 0;
+                    int min_j = 0;
+                    int flag_i = 0;
+                    REP(t2, 4){
+                        if (t==t2) {
+                            continue;
+                        }
+                        // insertに最適な場所を探す
+                        if (ItemWeight(bag[t][i])+BagWeight(bag[t2])>15) {
+                            continue;
+                        }
+                        REP(j, bag[t2].size()){
+                            d2 = 0;
+                            if (j==0) {
+                                d2 += DistanceAB(99, bag[t][i]);
+                                a2 = 99;
+                            }else{
+                                d2 += DistanceAB(bag[t2][j-1], bag[t][i]);
+                                a2 = bag[t2][j-1];
+                            }
+                            if (j==int(bag[t2].size())) {
+                                d2 += DistanceAB(bag[t][i], 99);
+                                b2 = 99;
+                            }else{
+                                d2 += DistanceAB(bag[t2][j],bag[t][i]);
+                                b2 = bag[t2][j];
+                            }
+                            d2 -= DistanceAB(a2, b2);
+                            assert(d2>=0);
+                            if (d2 < min_d2) {
+                                min_d2 = d2;
+                                min_j = j;
+                                min_t2 = t2;
+                                flag_i = 1;
+                                //                            break;
+                            }
+                        }
+                    }
+                    assert(d1<=0);
+                    if (d1+min_d2<-20 && flag_i==1) {
+                        //                    printf("○");
+                        bag[min_t2].insert(bag[min_t2].begin()+min_j, bag[t][i]);
+                        bag[t].erase(bag[t].begin()+i);
+                        count ++;
+                        flag_i = 0;
+                    }else{
+                        //                    printf("☓");
+                    }
+                    
+                }
+            }
+            if (count==0 || loop_count>100000) {
+                break;
+            }
+        }
+    }
     
     
     //    rootから消費燃料
@@ -358,10 +467,6 @@ namespace hpc {
     //   初期化　bag に荷物をつめる　-1はbag[4]に
     void nStage::SetBag(){
         for (int i = 0; i < aStage->items().count(); ++i) {
-            //            HPC_PRINT("時間:%d 重さ:%d 配達先:%d,%d\n",aStage->items().operator[](i).period(),
-            //            aStage->items().operator[](i).weight(),
-            //            aStage->items().operator[](i).destination().x,
-            //            aStage->items().operator[](i).destination().y);
             if (aStage->items().operator[](i).period()==-1) { // 時間未指定[-1]はbag[4]にいれる
                 bag[4].push_back(i);
             }else{
@@ -496,7 +601,13 @@ namespace hpc {
     
     int nStage::DistanceAB(int itemA_index, int itemB_index){
         int i_x,i_y;
-        if (itemA_index==99 || itemB_index==99) {
+        if (itemA_index == itemB_index) {
+            return 0;
+        }
+        if (itemA_index==99) {
+            swap(itemA_index,itemB_index);
+        }
+        if (itemB_index==99) {
             i_x = mid_x;
             i_y = mid_y;
         }else{
@@ -543,15 +654,10 @@ namespace hpc {
         t.getStage(aStage);
         t.solve();
         /////////////////////////////////////////////////////////////////
-        //        HPC_PRINT("debug++++++++++++++++++++++++++++++++++++++++++\n");
-        //        for (int i=0; i<4; i++) {
-        //            HPC_PRINT("時間帯: %d 荷物の数: %lu   (",i,rBag[i].size());
-        //            for (int j = 0; j < int(rBag[i].size()); ++j) {
-        //                HPC_PRINT("%d  ",rBag[i][j]);
-        //            }
-        //            HPC_PRINT(")\n");
-        //        }
-        //        HPC_PRINT("rAct[0].size()  %lu\n",rAct[0].size());
+        //cout << "---------- stage no " << stage_n << "---------------" << endl;
+//                for (int i=0; i<5; i++) {
+//                    printf("%d  ",int(rBag[i].size()));
+//                }
     }
     
     
@@ -619,11 +725,14 @@ namespace hpc {
     {
         if (aStageState == StageState_Failed) {
             failed_stage_n++;
+            //printf("失敗 ");
         }
         else if (aStageState == StageState_TurnLimit) {
             // ターン数オーバーしたかどうかは、ここで検知できます。
         }else{
             successd_stage_n++;
+//            printf("成功 ");
         }
+//        printf("%d / %d \n", successd_stage_n,successd_stage_n+failed_stage_n);
     }
 }
