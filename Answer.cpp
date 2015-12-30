@@ -22,6 +22,8 @@ namespace hpc {
     int stage_n;                // ステージナンバー
     int successd_stage_n;
     int failed_stage_n;
+    int total_score;
+    int n_score;
     vector<queue<Action>> rAct;  // rAct[時間帯] = アクションリスト　nStage.act をコピーする
     vector<vector<int>> rBag;    // rBag[時間帯] = 荷物リスト        nStage.bag をコピーする
     const int x[]={-1,1,0,0};    // 上下左右のActionの選択用
@@ -36,6 +38,7 @@ namespace hpc {
         const Stage *aStage;                            // nStage内でaStageを参照するためのもの
         void getStage(const Stage& aStageSub);
         void solve();
+        void ForceSolve();
     private:
         vector<vector<vector<int>>> allMap;  // allMap[基準点][y][x] = Pos(基準点)から(x,y)までの距離
         vector<vector<int>> bag;             // bag[時間帯] = 荷物リスト
@@ -67,6 +70,8 @@ namespace hpc {
         bool overWeight();                               // 荷物が15を超えているか
         long long Pow(int x, int y);                     // power
         void StartBagChange();                           // 荷物(-1)が多い時、初期のバッグをいじっておく
+        void StageScore();
+        string Root2Hash(vector<int> root);
     };
     
     nStage::nStage()
@@ -97,6 +102,34 @@ namespace hpc {
         SetAction();
         CopyGlovalANS();
     }
+    
+    
+    // 全探索でどこまでいけるか
+    void nStage::ForceSolve(){
+        SetBag();
+        SetAllMap();
+        if (bag[4].size()==0) {
+            REP(t, 4){
+                ForceRoot(t);
+            }
+        }
+        SetAction();
+        CopyGlovalANS();
+        StageScore();
+    }
+    
+    void nStage::StageScore(){
+        int fuel = 0;
+        REP(t, 4){
+            fuel += FuelCostR(bag[t]);
+        }
+        if (fuel==0) {
+            return;
+        }
+        n_score = mid_x = aStage->field().width() * aStage->field().height() * aStage->items().count() *10000/fuel;
+//        printf("%d",n_score);
+    }
+    
     
     
     void nStage::Greedy(){
@@ -481,13 +514,10 @@ namespace hpc {
     // ルート全探索
     void nStage::ForceRoot(int time){
         if(bag[time].size()<=1){return;}
-        string sorted_key= "";
         vector<int> tmp_bag;
         copy(bag[time].begin(), bag[time].end(), back_inserter(tmp_bag));
         sort(tmp_bag.begin(),tmp_bag.end());
-        for (int j=0; j<int(bag[time].size()); ++j) {
-            sorted_key.push_back('a'+tmp_bag[j]);
-        }
+        string sorted_key = Root2Hash(tmp_bag);
         if(mp.count(sorted_key) != 0) {
             // ハッシュが設定されている場合の処理
             string abcd_best = mp[sorted_key];
@@ -507,13 +537,19 @@ namespace hpc {
                     copy(tmp_bag.begin(), tmp_bag.end(), back_inserter(min_bag));
                 }
             }while (next_permutation(tmp_bag.begin(),tmp_bag.end()));
-            string best_key;
-            for (int j=0; j<int(bag[time].size()); ++j) {
-                bag[time][j] = min_bag[j];
-                best_key.push_back('a'+min_bag[j]);
-            }
+            string best_key = Root2Hash(min_bag);
+            bag[time].clear();
+            copy(min_bag.begin(),min_bag.end(),back_inserter(bag[time]));
             mp[sorted_key] = best_key;
         }
+    }
+    
+    string nStage::Root2Hash(vector<int> root){
+        string hash_key = "";
+        REP(i, root.size()){
+            hash_key.push_back(root[i]+'a');
+        }
+        return hash_key;
     }
     
     long long nStage::Pow(int _x, int _y){
@@ -836,7 +872,8 @@ namespace hpc {
         stage_n ++;
         nStage t;
         t.getStage(aStage);
-        t.solve();
+//        t.solve();
+        t.ForceSolve();
         /////////////////////////////////////////////////////////////////
         //cout << "---------- stage no " << stage_n << "---------------" << endl;
         //                for (int i=0; i<5; i++) {
@@ -907,16 +944,17 @@ namespace hpc {
     /// @param[in] aScore このステージで獲得したスコア。エラーなら0。
     void Answer::Finalize(const Stage& aStage, StageState aStageState, int aScore)
     {
+        printf("%03d ",stage_n);
         if (aStageState == StageState_Failed) {
             failed_stage_n++;
-            //printf("失敗 ");
+            printf("☓ 00000000 %08d\n",total_score);
         }
         else if (aStageState == StageState_TurnLimit) {
             // ターン数オーバーしたかどうかは、ここで検知できます。
         }else{
             successd_stage_n++;
-            //            printf("成功 ");
+            total_score += n_score;
+            printf("○ %08d %08d\n",n_score,total_score);
         }
-        //        printf("%d / %d \n", successd_stage_n,successd_stage_n+failed_stage_n);
     }
 }
