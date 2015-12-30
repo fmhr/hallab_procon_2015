@@ -97,7 +97,7 @@ namespace hpc {
         SetAction();
         CopyGlovalANS();
     }
-
+    
     
     void nStage::Greedy(){
         vector<vector<int>> init_bag(5);
@@ -235,7 +235,7 @@ namespace hpc {
                                 b2 = bag[t2][j];
                             }
                             d2 -= DistanceAB(a2, b2);
-//                            assert(d2>=0);
+                            //                            assert(d2>=0);
                             if (d2 < min_d2) {
                                 min_d2 = d2;
                                 min_j = j;
@@ -245,7 +245,7 @@ namespace hpc {
                             }
                         }
                     }
-//                    assert(d1<=0);
+                    //                    assert(d1<=0);
                     if (d1+min_d2<-20 && flag_i==1) {
                         bag[min_t2].insert(bag[min_t2].begin()+min_j, bag[t][i]);
                         bag[t].erase(bag[t].begin()+i);
@@ -327,7 +327,7 @@ namespace hpc {
             }
         }
     }
-
+    
     
     //    rootから消費燃料
     int nStage::FuelCostR(vector<int> root){
@@ -338,7 +338,7 @@ namespace hpc {
         for (int i=0; i<int(root.size()); ++i) {
             truck_weight += ItemWeight(root[i]);
         }
-//        assert(truck_weight<=18);
+        //        assert(truck_weight<=18);
         int fuel_consumption = 0;
         fuel_consumption += (truck_weight*DistanceAxy(root[0], mid_x, mid_y));
         truck_weight -= ItemWeight(root[0]);
@@ -346,7 +346,7 @@ namespace hpc {
             fuel_consumption += (truck_weight*DistanceAB(root[i], root[i+1]));
             truck_weight -= ItemWeight(root[i+1]);
         }
-//        assert(truck_weight==3);
+        //        assert(truck_weight==3);
         fuel_consumption += truck_weight*DistanceAxy(root[int(root.size()-1)], mid_x, mid_y);
         return fuel_consumption;
     }
@@ -394,7 +394,7 @@ namespace hpc {
             swap(bag[t][i],bag[t][min_bag_index]);
         }
         Opt2(t);
-//        Opt2Fuel(t);
+        //        Opt2Fuel(t);
         ReverseRoot(t);
         return;
     }
@@ -523,7 +523,7 @@ namespace hpc {
         }
         return r;
     }
-
+    
     //   初期化　bag に荷物をつめる　-1はbag[4]に
     void nStage::SetBag(){
         for (int i = 0; i < aStage->items().count(); ++i) {
@@ -545,7 +545,7 @@ namespace hpc {
             if (int(bag[i].size())>1) {
                 for (int j = 0; j<int(bag[i].size()-1); ++j) {
                     SetActionA2B(i, bag[i][j+1], aStage->items().operator[](bag[i][j]).destination().x,
-                           aStage->items().operator[](bag[i][j]).destination().y);
+                                 aStage->items().operator[](bag[i][j]).destination().y);
                 }
             }
             if (bag[i].size()>0) {
@@ -698,7 +698,7 @@ namespace hpc {
         }
         return w;
     }
-
+    
     void nStage::StartBagChange(){
         int c[4];
         for (int i=0; i<4; ++i) {
@@ -839,9 +839,9 @@ namespace hpc {
         t.solve();
         /////////////////////////////////////////////////////////////////
         //cout << "---------- stage no " << stage_n << "---------------" << endl;
-//                for (int i=0; i<5; i++) {
-//                    printf("%d  ",int(rBag[i].size()));
-//                }
+        //                for (int i=0; i<5; i++) {
+        //                    printf("%d  ",int(rBag[i].size()));
+        //                }
     }
     
     
@@ -856,7 +856,7 @@ namespace hpc {
     /// @param[in] aItemGroup 荷物グループ。
     void Answer::InitPeriod(const Stage& aStage, ItemGroup& aItemGroup)
     {
-            for (int i=0; i<int(rBag[aStage.period()].size()); ++i) {
+        for (int i=0; i<int(rBag[aStage.period()].size()); ++i) {
             if (aStage.getTransportState(rBag[aStage.period()][i])==TransportState_NotTransported){
                 aItemGroup.addItem(rBag[aStage.period()][i]);
                 //                HPC_PRINT("詰め込み荷物: %d\n", rBag[aStage.period()][i]);
@@ -915,8 +915,8 @@ namespace hpc {
             // ターン数オーバーしたかどうかは、ここで検知できます。
         }else{
             successd_stage_n++;
-//            printf("成功 ");
+            //            printf("成功 ");
         }
-//        printf("%d / %d \n", successd_stage_n,successd_stage_n+failed_stage_n);
+        //        printf("%d / %d \n", successd_stage_n,successd_stage_n+failed_stage_n);
     }
 }
