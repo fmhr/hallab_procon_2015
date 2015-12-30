@@ -92,6 +92,7 @@ namespace hpc {
             }
             Greedy();
             ReplaceBag();
+            ExchangeBag();
         }
         SetAction();
         CopyGlovalANS();
@@ -227,7 +228,6 @@ namespace hpc {
                         }
                         // insertに最適な場所を探す
                         if (ItemWeight(bag[t][i])+BagWeight(bag[t2])>=15) {
-                            printf("○");
                             continue;
                         }
                         REP(j, bag[t2].size()){
@@ -259,13 +259,10 @@ namespace hpc {
                     }
 //                    assert(d1<=0);
                     if (d1+min_d2<-20 && flag_i==1) {
-                        //                    printf("○");
                         bag[min_t2].insert(bag[min_t2].begin()+min_j, bag[t][i]);
                         bag[t].erase(bag[t].begin()+i);
                         count ++;
                         flag_i = 0;
-                    }else{
-                        //                    printf("☓");
                     }
                     
                 }
@@ -279,15 +276,6 @@ namespace hpc {
     void nStage::ExchangeBag(){
         vector<int> baglist(bag[4].size());     // index = bag[4]_index
         vector<int> can_replace(20);
-        REP(t, 4){
-            REP(i, bag[t].size()){
-                REP(j, bag[4].size()){
-                    if (bag[t][i]==bag[4][j]) {
-                        baglist[j] = t;
-                    }
-                }
-            }
-        }
         REP(i, bag[4].size()){
             can_replace[bag[4][i]] = 1;
         }
@@ -302,81 +290,55 @@ namespace hpc {
                     if (can_replace[bag[t][i]]!=1) {
                         continue;
                     }
-                    int d1 = 0;
-                    int a1,b1; // 両端のindex
-                    if (i==0) {
-                        d1 -= DistanceAB(bag[t][i], 99);
-                        a1 = 99;
-                    }else{
-                        d1 -= DistanceAB(bag[t][i], bag[t][i-1]);
-                        a1 = bag[t][i-1];
-                    }
-                    if (i==int(bag[t].size()-1)) {
-                        d1 -= DistanceAB(int(bag[t][i]), 99);
-                        b1 =99;
-                    }else{
-                        d1 -= DistanceAB(int(bag[t][i]), bag[t][i+1]);
-                        b1 = bag[t][i+1];
-                    }
-                    d1 += DistanceAB(a1, b1);
-                    // 挿入先の探索
-                    int min_d2 = inf;
-                    int d2 = 0;
-                    int a2=0;
-                    int b2=0;
-                    int min_t2 = 0;
-                    int min_j = 0;
-                    int flag_i = 0;
                     REP(t2, 4){
-                        if (t==t2) {
-                            continue;
-                        }
-                        // insertに最適な場所を探す
-                        if (ItemWeight(bag[t][i])+BagWeight(bag[t2])>=15) {
-                            printf("○");
-                            continue;
-                        }
                         REP(j, bag[t2].size()){
-                            d2 = 0;
-                            if (j==0) {
-                                d2 += DistanceAB(99, bag[t][i]);
-                                a2 = 99;
+                            if (can_replace[bag[t2][j]]!=1) {
+                                continue;
+                            }
+                            if (ItemWeight(bag[t][i])+BagWeight(bag[t2])-ItemWeight(bag[t2][j]>15) or
+                                ItemWeight(bag[t2][j])+BagWeight(bag[t])-ItemWeight(bag[t][i])>15) {
+                                continue;
+                            }
+                            int pre_d1 = 0;
+                            int pre_d2 = 0;
+                            int new_d1 = 0;
+                            int new_d2 = 0;
+                            if (i==0) {
+                                pre_d1 += DistanceAB(99, bag[t][i]);
+                                new_d1 += DistanceAB(99, bag[t2][j]);
                             }else{
-                                d2 += DistanceAB(bag[t2][j-1], bag[t][i]);
-                                a2 = bag[t2][j-1];
+                                pre_d1 += DistanceAB(bag[t][i-1], bag[t][i]);
+                                new_d1 += DistanceAB(bag[t][i-1], bag[t2][j]);
+                            }
+                            if (i==int(bag[t].size())) {
+                                pre_d1 += DistanceAB(bag[t][i], 99);
+                                new_d1 += DistanceAB(bag[t2][j], 99);
+                            }else{
+                                pre_d1 += DistanceAB(bag[t][i], bag[t][i+1]);
+                                new_d1  += DistanceAB(bag[t2][j], bag[t][i+1]);
+                            }
+                            if (j==0) {
+                                pre_d2 += DistanceAB(99, bag[t2][j]);
+                                new_d2 += DistanceAB(99, bag[t][i]);
+                            }else{
+                                pre_d2 += DistanceAB(bag[t2][j-1], bag[t2][j]);
+                                new_d2 += DistanceAB(bag[t2][j-1], bag[t][i]);
                             }
                             if (j==int(bag[t2].size())) {
-                                d2 += DistanceAB(bag[t][i], 99);
-                                b2 = 99;
+                                pre_d2 += DistanceAB(bag[t2][j], 99);
+                                new_d2 += DistanceAB(bag[t][i], 99);
                             }else{
-                                d2 += DistanceAB(bag[t2][j],bag[t][i]);
-                                b2 = bag[t2][j];
+                                pre_d2 += DistanceAB(bag[t2][j], bag[t2][j+1]);
+                                new_d2 += DistanceAB(bag[t][i], bag[t2][j+1]);
                             }
-                            d2 -= DistanceAB(a2, b2);
-                            //                            assert(d2>=0);
-                            if (d2 < min_d2) {
-                                min_d2 = d2;
-                                min_j = j;
-                                min_t2 = t2;
-                                flag_i = 1;
-                                //                            break;
+                            if ((pre_d1+pre_d1-new_d1-new_d2)>10) {
+                                swap(bag[t][i], bag[t2][j]);
                             }
                         }
                     }
-                    //                    assert(d1<=0);
-                    if (d1+min_d2<-20 && flag_i==1) {
-                        //                    printf("○");
-                        bag[min_t2].insert(bag[min_t2].begin()+min_j, bag[t][i]);
-                        bag[t].erase(bag[t].begin()+i);
-                        count ++;
-                        flag_i = 0;
-                    }else{
-                        //                    printf("☓");
-                    }
-                    
                 }
             }
-            if (count==0 || loop_count>1000) {
+            if (count==0) {
                 break;
             }
         }
