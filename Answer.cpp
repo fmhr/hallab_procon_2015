@@ -12,6 +12,8 @@
 #define REP(i,n)  FOR(i,0,n)
 #define inf 715827882 // INT_MAX/3
 
+#define RANDAMLOOP 15000 // 提出時に変更するループ回数　16385　6385
+
 using namespace std;
 
 
@@ -55,7 +57,8 @@ namespace hpc {
         void Opt2Fuel(int t);                             // ルート改善  2_Opt法(燃料)
         void ReverseRoot(int t);                          // ルート改善　逆順を試す(消費燃料を見る)
         int FuelCostR(vector<int> root);                  // ルートの消費燃料
-        void ReplaceBag();                                  // 荷物を他のバッグにうつす
+        void ReplaceBag();                                  // 荷物を他のところににうつす
+        void ExchangeBag();                                  // 荷物を他の荷物と交換する
         int DistanceAB(int a_index, int itemB_index);      // 点A,点Bとの距離
         int DistanceAxy(int a_index, int x, int y);        // 点A,点(x,y)との距離
         int BagWeight(vector<int> b);                      // バッグの重さ
@@ -63,6 +66,7 @@ namespace hpc {
         int ItemWeight(int item_index);                    // 重さ2
         bool overWeight();                                 // 荷物が15を超えているか
         long long Pow(int x, int y);                       // power
+        void StartBagChange();                            // 荷物(-1)が多い時、初期のバッグをいじっておく
     };
     
     nStage::nStage()
@@ -83,6 +87,9 @@ namespace hpc {
                 ForceRoot(t);
             }
         }else{
+            if (bag[4].size()>14 && bag[0].size()<=1 && bag[1].size()<=1 && bag[2].size()<=1 && bag[3].size()<=1) {
+                StartBagChange();
+            }
             Greedy();
             ReplaceBag();
         }
@@ -100,7 +107,7 @@ namespace hpc {
         int min_fuel = inf;
         vector<int> delivery_time;
         ////////////////////////ランダム回数//// 提出時は 16385
-        for (int q=0; q<6385; ++q) {
+        for (int q=0; q<RANDAMLOOP; ++q) {
             int i = q;
             //　荷物(-1)がZ以上のときはランダム
             int Z = 3;
@@ -166,6 +173,112 @@ namespace hpc {
     void nStage::ReplaceBag(){
         vector<int> baglist(bag[4].size());     // index = bag[4]_index
         vector<int> can_replace(20);
+//        REP(t, 4){
+//            REP(i, bag[t].size()){
+//                REP(j, bag[4].size()){
+//                    if (bag[t][i]==bag[4][j]) {
+//                        baglist[j] = t;
+//                    }
+//                }
+//            }
+//        }
+        REP(i, bag[4].size()){
+            can_replace[bag[4][i]] = 1;
+        }
+        ///// ループするならここ
+        int count; // ループしても改善点がみつからないとき(count==0)にループを抜ける
+        int loop_count = 0;
+        while (true) {
+            loop_count++;
+            count = 0;
+            REP(t,4){
+                REP(i, bag[t].size()){ // ひとつえらぶ
+                    if (can_replace[bag[t][i]]!=1) {
+                        continue;
+                    }
+                    int d1 = 0;
+                    int a1,b1; // 両端のindex
+                    if (i==0) {
+                        d1 -= DistanceAB(bag[t][i], 99);
+                        a1 = 99;
+                    }else{
+                        d1 -= DistanceAB(bag[t][i], bag[t][i-1]);
+                        a1 = bag[t][i-1];
+                    }
+                    if (i==int(bag[t].size()-1)) {
+                        d1 -= DistanceAB(int(bag[t][i]), 99);
+                        b1 =99;
+                    }else{
+                        d1 -= DistanceAB(int(bag[t][i]), bag[t][i+1]);
+                        b1 = bag[t][i+1];
+                    }
+                    d1 += DistanceAB(a1, b1);
+                    // 挿入先の探索
+                    int min_d2 = inf;
+                    int d2 = 0;
+                    int a2=0;
+                    int b2=0;
+                    int min_t2 = 0;
+                    int min_j = 0;
+                    int flag_i = 0;
+                    REP(t2, 4){
+                        if (t==t2) {
+                            continue;
+                        }
+                        // insertに最適な場所を探す
+                        if (ItemWeight(bag[t][i])+BagWeight(bag[t2])>=15) {
+                            printf("○");
+                            continue;
+                        }
+                        REP(j, bag[t2].size()){
+                            d2 = 0;
+                            if (j==0) {
+                                d2 += DistanceAB(99, bag[t][i]);
+                                a2 = 99;
+                            }else{
+                                d2 += DistanceAB(bag[t2][j-1], bag[t][i]);
+                                a2 = bag[t2][j-1];
+                            }
+                            if (j==int(bag[t2].size())) {
+                                d2 += DistanceAB(bag[t][i], 99);
+                                b2 = 99;
+                            }else{
+                                d2 += DistanceAB(bag[t2][j],bag[t][i]);
+                                b2 = bag[t2][j];
+                            }
+                            d2 -= DistanceAB(a2, b2);
+//                            assert(d2>=0);
+                            if (d2 < min_d2) {
+                                min_d2 = d2;
+                                min_j = j;
+                                min_t2 = t2;
+                                flag_i = 1;
+                                //                            break;
+                            }
+                        }
+                    }
+//                    assert(d1<=0);
+                    if (d1+min_d2<-20 && flag_i==1) {
+                        //                    printf("○");
+                        bag[min_t2].insert(bag[min_t2].begin()+min_j, bag[t][i]);
+                        bag[t].erase(bag[t].begin()+i);
+                        count ++;
+                        flag_i = 0;
+                    }else{
+                        //                    printf("☓");
+                    }
+                    
+                }
+            }
+            if (count==0 || loop_count>1000) {
+                break;
+            }
+        }
+    }
+    
+    void nStage::ExchangeBag(){
+        vector<int> baglist(bag[4].size());     // index = bag[4]_index
+        vector<int> can_replace(20);
         REP(t, 4){
             REP(i, bag[t].size()){
                 REP(j, bag[4].size()){
@@ -219,7 +332,8 @@ namespace hpc {
                             continue;
                         }
                         // insertに最適な場所を探す
-                        if (ItemWeight(bag[t][i])+BagWeight(bag[t2])>15) {
+                        if (ItemWeight(bag[t][i])+BagWeight(bag[t2])>=15) {
+                            printf("○");
                             continue;
                         }
                         REP(j, bag[t2].size()){
@@ -239,7 +353,7 @@ namespace hpc {
                                 b2 = bag[t2][j];
                             }
                             d2 -= DistanceAB(a2, b2);
-                            assert(d2>=0);
+                            //                            assert(d2>=0);
                             if (d2 < min_d2) {
                                 min_d2 = d2;
                                 min_j = j;
@@ -249,7 +363,7 @@ namespace hpc {
                             }
                         }
                     }
-                    assert(d1<=0);
+                    //                    assert(d1<=0);
                     if (d1+min_d2<-20 && flag_i==1) {
                         //                    printf("○");
                         bag[min_t2].insert(bag[min_t2].begin()+min_j, bag[t][i]);
@@ -262,12 +376,12 @@ namespace hpc {
                     
                 }
             }
-            if (count==0 || loop_count>100000) {
+            if (count==0 || loop_count>1000) {
                 break;
             }
         }
     }
-    
+
     
     //    rootから消費燃料
     int nStage::FuelCostR(vector<int> root){
@@ -639,7 +753,131 @@ namespace hpc {
         return w;
     }
 
-    
+    void nStage::StartBagChange(){
+        int c[4];
+        for (int i=0; i<4; ++i) {
+            c[i] = int(bag[i].size());
+        }
+        int cnt = c[0]+c[1]+c[2]+c[3];
+        int maxd_bagi = 0;
+        int maxd_v = 0;
+        int p[3];
+        if (cnt==0) {
+            for (int i=0; i<int(bag[4].size()); ++i) {
+                int d =DistanceAxy(bag[4][i], mid_x, mid_y);
+                if (maxd_v<d) {
+                    maxd_bagi = i;
+                    maxd_v = d;
+                }
+            }
+            bag[0].push_back(bag[4][maxd_bagi]);
+            bag[4].erase(bag[4].begin()+maxd_bagi);
+            c[0]++;
+            cnt++;
+        }
+        if (cnt==1) {
+            for (int i=0; i<4; ++i) {
+                if (bag[i].size()!=0) {
+                    p[0] = bag[i][0];
+                    break;
+                }
+            }
+            for (int i=0; i<int(bag[4].size()); ++i) {
+                maxd_v = 0;
+                int d = DistanceAB(p[0], bag[4][i]);
+                d += DistanceAB(99, bag[4][i]);
+                if (maxd_v < d) {
+                    maxd_bagi = i;
+                    maxd_v = d;
+                }
+            }
+            for (int i =0; i < 4; ++i) {
+                if (c[i]==0) {
+                    bag[i].push_back(bag[4][maxd_bagi]);
+                    bag[4].erase(bag[4].begin()+maxd_bagi);
+                    c[i]++;
+                    cnt++;
+                    break;
+                }
+            }
+        }
+        if (cnt==2) {
+            int d = 0;
+            maxd_v = 0;
+            int q = 0;
+            for (int i=0; i<4; ++i) {
+                if (bag[i].size()==1) {
+                    p[q] = bag[i][0];
+                    q++;
+                }
+            }
+            for (int i=0; i<int(bag[4].size()); ++i) {
+                d += DistanceAB(p[0], bag[4][i]);
+                d += DistanceAB(p[1], bag[4][i]);
+                d += DistanceAB(99, bag[4][i]);
+                if (maxd_v < d) {
+                    maxd_bagi = i;
+                    maxd_v = d;
+                }
+            }
+            for (int i =0; i < 4; ++i) {
+                if (c[i]==0) {
+                    bag[i].push_back(bag[4][maxd_bagi]);
+                    bag[4].erase(bag[4].begin()+maxd_bagi);
+                    c[i]++;
+                    cnt++;
+                    break;
+                }
+            }
+        }
+        if (cnt==3) {
+            int d = 0;
+            maxd_v = 0;
+            int q = 0;
+            for (int i=0; i<4; ++i) {
+                if (bag[i].size()==1) {
+                    p[q] = bag[i][0];
+                    q++;
+                }
+            }
+            for (int i=0; i<int(bag[4].size()); ++i) {
+                d += DistanceAB(p[0], bag[4][i]);
+                d += DistanceAB(p[1], bag[4][i]);
+                d += DistanceAB(p[2], bag[4][i]);
+                d += DistanceAB(99, bag[4][i]);
+                if (maxd_v < d) {
+                    maxd_bagi = i;
+                    maxd_v = d;
+                }
+            }
+            for (int i =0; i < 4; ++i) {
+                if (c[i]==0) {
+                    bag[i].push_back(bag[4][maxd_bagi]);
+                    bag[4].erase(bag[4].begin()+maxd_bagi);
+                    c[i]++;
+                    cnt++;
+                    break;
+                }
+            }
+            for (int i = 0; i<1; ++i) {
+                for (int t=0; t<4; ++t) {
+                    d = 0;
+                    int min_d = 1000000000;
+                    int min_i = 0;
+                    for (int j = 0; j<int(bag[4].size()); ++j) {
+                        d = DistanceAB(bag[t][i], bag[4][j]);
+                        if (min_d > d) {
+                            min_d = d;
+                            min_i = j;
+                        }
+                    }
+                    bag[t].push_back(bag[4][min_i]);
+                    bag[4].erase(bag[4].begin()+min_i);
+                }
+            }
+        }
+        return;
+    }
     
     //------------------------------------------------------------------------------
     /// 各ステージ開始時に呼び出されます。
