@@ -41,32 +41,32 @@ namespace hpc {
         vector<vector<int>> bag;             // bag[時間帯] = 荷物リスト
         vector<queue<Action>> act;           // act[時間帯] = アクションリスト
         unordered_map <string, string>mp;
-        int mid_x,mid_y;                                // 中心点
-        void SetAllMap();                               // allMapを埋める
-        void SetBag();                                  // 荷物リストからbag[時間帯]に入れる
-        void SetAction();                               // 配送リストからアクションを埋める
-        void SetActionStart2A(int time,int p);            // 中心点からPos(p)までのアクションを埋める > nStage.act
-        void SetActionA2B(int time,int p, int n, int m);  // Pos(p)から(n,m)までのアクションを埋める > nStage.act
+        int mid_x,mid_y;                                 // 中心点
+        void SetAllMap();                                // allMapを埋める
+        void SetBag();                                   // 荷物リストからbag[時間帯]に入れる
+        void SetAction();                                // 配送リストからアクションを埋める
+        void SetActionStart2A(int time,int p);           // 中心点からPos(p)までのアクションを埋める > nStage.act
+        void SetActionA2B(int time,int p, int n, int m); // Pos(p)から(n,m)までのアクションを埋める > nStage.act
         void SetActionB2End(int time,int p);             // Pos(p)から(中心点までのアクションを埋める　> nStage.act
-        void CopyGlovalANS();                             // rAct, rBag にコピーする
-        void Greedy();                                    // bag[-1]の振り分けの全探索
-        void ForceRoot(int t);                            // ルート決定　全探索 bag[t]を指定する
-        void GreedyRoot();                                // ルート決定　貪欲法
-        void GreedyRootT(int t);                          // ルート決定　貪欲法 bag(t)
-        void Opt2(int t);                                 // ルート改善  2_Opt法(距離)
-        void Opt2Fuel(int t);                             // ルート改善  2_Opt法(燃料)
-        void ReverseRoot(int t);                          // ルート改善　逆順を試す(消費燃料を見る)
-        int FuelCostR(vector<int> root);                  // ルートの消費燃料
-        void ReplaceBag();                                  // 荷物を他のところににうつす
-        void ExchangeBag();                                  // 荷物を他の荷物と交換する
-        int DistanceAB(int a_index, int itemB_index);      // 点A,点Bとの距離
-        int DistanceAxy(int a_index, int x, int y);        // 点A,点(x,y)との距離
-        int BagWeight(vector<int> b);                      // バッグの重さ
-        int ItemWeightBagIndex(int time,int bag_index);    // 重さ
-        int ItemWeight(int item_index);                    // 重さ2
-        bool overWeight();                                 // 荷物が15を超えているか
-        long long Pow(int x, int y);                       // power
-        void StartBagChange();                            // 荷物(-1)が多い時、初期のバッグをいじっておく
+        void CopyGlovalANS();                            // rAct, rBag にコピーする
+        void Greedy();                                   // bag[-1]の振り分けの全探索
+        void ForceRoot(int t);                           // ルート決定　全探索 bag[t]を指定する
+        void GreedyRoot();                               // ルート決定　貪欲法
+        void GreedyRootT(int t);                         // ルート決定　貪欲法 bag(t)
+        void Opt2(int t);                                // ルート改善  2_Opt法(距離)
+        void Opt2Fuel(int t);                            // ルート改善  2_Opt法(燃料)
+        void ReverseRoot(int t);                         // ルート改善　逆順を試す(消費燃料を見る)
+        int FuelCostR(vector<int> root);                 // ルートの消費燃料
+        void ReplaceBag();                               // 荷物を他のところににうつす
+        void ExchangeBag();                              // 荷物を他の荷物と交換する
+        int DistanceAB(int a_index, int itemB_index);    // 点A,点Bとの距離
+        int DistanceAxy(int a_index, int x, int y);      // 点A,点(x,y)との距離
+        int BagWeight(vector<int> b);                    // バッグの重さ
+        int ItemWeightBagIndex(int time,int bag_index);  // 重さ
+        int ItemWeight(int item_index);                  // 重さ2
+        bool overWeight();                               // 荷物が15を超えているか
+        long long Pow(int x, int y);                     // power
+        void StartBagChange();                           // 荷物(-1)が多い時、初期のバッグをいじっておく
     };
     
     nStage::nStage()
@@ -172,25 +172,13 @@ namespace hpc {
     
     
     void nStage::ReplaceBag(){
-        vector<int> baglist(bag[4].size());     // index = bag[4]_index
         vector<int> can_replace(20);
-//        REP(t, 4){
-//            REP(i, bag[t].size()){
-//                REP(j, bag[4].size()){
-//                    if (bag[t][i]==bag[4][j]) {
-//                        baglist[j] = t;
-//                    }
-//                }
-//            }
-//        }
         REP(i, bag[4].size()){
             can_replace[bag[4][i]] = 1;
         }
         ///// ループするならここ
         int count; // ループしても改善点がみつからないとき(count==0)にループを抜ける
-        int loop_count = 0;
         while (true) {
-            loop_count++;
             count = 0;
             REP(t,4){
                 REP(i, bag[t].size()){ // ひとつえらぶ
@@ -264,10 +252,9 @@ namespace hpc {
                         count ++;
                         flag_i = 0;
                     }
-                    
                 }
             }
-            if (count==0 || loop_count>1000) {
+            if (count==0) {
                 break;
             }
         }
@@ -279,11 +266,8 @@ namespace hpc {
         REP(i, bag[4].size()){
             can_replace[bag[4][i]] = 1;
         }
-        ///// ループするならここ
         int count; // ループしても改善点がみつからないとき(count==0)にループを抜ける
-        int loop_count = 0;
         while (true) {
-            loop_count++;
             count = 0;
             REP(t,4){
                 REP(i, bag[t].size()){ // ひとつえらぶ
