@@ -14,6 +14,9 @@
 
 #define RANDAMLOOP 15000 // 提出時に変更するループ回数　16385　6385
 
+//uint16_t GetBits(uint16_t x,int p,int n){return ((x>>p)&~(~0x0000<<n));}
+int GetBits(long long x,int p,int n){return ((x>>p)&~(~0x000000<<n));}
+
 using namespace std;
 
 
@@ -53,6 +56,7 @@ namespace hpc {
         void SetActionB2End(int time,int p);             // Pos(p)から(中心点までのアクションを埋める　> nStage.act
         void CopyGlovalANS();                            // rAct, rBag にコピーする
         void Greedy();                                   // bag[-1]の振り分けの全探索
+        void ForceForce();
         void ForceRoot(int t);                           // ルート決定　全探索 bag[t]を指定する
         void GreedyRoot();                               // ルート決定　貪欲法
         void GreedyRootT(int t);                         // ルート決定　貪欲法 bag(t)
@@ -112,6 +116,10 @@ namespace hpc {
             REP(t, 4){
                 ForceRoot(t);
             }
+        }else{
+            if(bag[4].size()<8){
+                ForceForce();
+            }
         }
         SetAction();
         CopyGlovalANS();
@@ -127,7 +135,7 @@ namespace hpc {
             return;
         }
         n_score = mid_x = aStage->field().width() * aStage->field().height() * aStage->items().count() *10000/fuel;
-//        printf("%d",n_score);
+        //        printf("%d",n_score);
     }
     
     
@@ -201,6 +209,83 @@ namespace hpc {
             copy(max_bag[t].begin(),max_bag[t].end(),back_inserter(bag[t]));
         }
     }
+    
+    
+    // 全探索x全探索 Greedyのコピペ
+    void nStage::ForceForce(){
+        vector<vector<int>> init_bag(5);
+        vector<vector<int>> max_bag(4);
+        for (int i = 0; i<5; ++i) {
+            copy(bag[i].begin(),bag[i].end(),back_inserter(init_bag[i]));
+        }
+        int min_fuel = inf;
+        vector<int> delivery_time;
+        for (long long i=0; i<Pow(4, int(bag[4].size())); ++i) {
+            //   bagを初期値に戻す
+            for (int j = 0; j<4; ++j) {
+                bag[j].clear();
+//                                copy(init_bag[j].begin(),init_bag.end(),back_inserter(bag[j]));   //よくわからないエラー
+                for (int k = 0; k<int(init_bag[j].size()); ++k) {
+                    bag[j].push_back(init_bag[j][k]);
+                }
+            }
+            // 数字に基づいて　配達時間を決定
+            delivery_time.clear();
+            long long ii = i;
+            for (int j=0; j<int(bag[4].size()); ++j) {
+                delivery_time.push_back(ii&3);
+//                if(j!=0){ii = ii>>2;};
+                ii>>=2;
+//                delivery_time.push_back((i/Pow(4,j))%4);
+//                delivery_time.push_back((i>>(j*2))%4);
+//                printf("%d ",GetBits(i, int(Pow(4, j)), 3));
+//                delivery_time.push_back(GetBits(i, int(Pow(4, j)), 3));
+            }
+            //
+//                        REP(i, delivery_time.size()){
+//                            printf("%d ",delivery_time[i]);
+//                        }
+//                        printf("\n");
+            //
+            
+            // 指定した時間のバッグに詰める
+            for (int j = 0; j<int(bag[4].size()); ++j) {
+                bag[delivery_time[j]].push_back(bag[4][j]);
+            }
+            // 荷物が積載可能重量を超えていたらパス
+            if (overWeight()) {
+                continue;
+            }
+            // 回数が多いのでルートぎめは貪欲法でとく
+            //            if (int(bag[4].size())>100) {
+            //                GreedyRoot();
+            //            }else{
+            //                REP(t, 4){ForceRoot(t);}
+            //            }
+            REP(t, 4){ForceRoot(t);}
+            // 消費燃料の計算
+            int total_fuel = 0;
+            for (int t=0; t<4; ++t) {
+                total_fuel += FuelCostR(bag[t]);
+            }
+            if (total_fuel<min_fuel) {
+                min_fuel = total_fuel;
+                for (int k=0; k<4; ++k) {
+                    max_bag[k].clear();
+                    for (int l=0; l<int(bag[k].size()); ++l) {
+                        max_bag[k].push_back(bag[k][l]);
+                    }
+                }
+            }
+        }
+        //// ここまで　ランダムループ
+        /// max_bagをbagにコピー
+        for (int t=0; t<4; ++t) {
+            bag[t].clear();
+            copy(max_bag[t].begin(),max_bag[t].end(),back_inserter(bag[t]));
+        }
+    }
+    
     
     
     
@@ -869,10 +954,9 @@ namespace hpc {
     /// @param[in] aStage 現在のステージ。
     void Answer::Init(const Stage& aStage)
     {
-        stage_n ++;
         nStage t;
         t.getStage(aStage);
-//        t.solve();
+        //        t.solve();
         t.ForceSolve();
         /////////////////////////////////////////////////////////////////
         //cout << "---------- stage no " << stage_n << "---------------" << endl;
@@ -944,17 +1028,18 @@ namespace hpc {
     /// @param[in] aScore このステージで獲得したスコア。エラーなら0。
     void Answer::Finalize(const Stage& aStage, StageState aStageState, int aScore)
     {
-        printf("%03d ",stage_n);
+        //        printf("%03d ",stage_n);
         if (aStageState == StageState_Failed) {
             failed_stage_n++;
-            printf("☓ 00000000 %08d\n",total_score);
+            //            printf("☓ 00000000 %08d\n",total_score);
         }
         else if (aStageState == StageState_TurnLimit) {
             // ターン数オーバーしたかどうかは、ここで検知できます。
         }else{
             successd_stage_n++;
             total_score += n_score;
-            printf("○ %08d %08d\n",n_score,total_score);
+            //            printf("○ %08d %08d\n",n_score,total_score);
         }
+        stage_n ++;
     }
 }
