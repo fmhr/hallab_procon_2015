@@ -66,6 +66,7 @@ namespace hpc {
         int FuelCostR(vector<int> root);                 // ルートの消費燃料
         void ReplaceBag();                               // 荷物を他のところににうつす
         void ExchangeBag();                              // 荷物を他の荷物と交換する
+        void ExchangeBagFuel();                              // 荷物を他の荷物と交換する+Fuel
         int DistanceAB(int a_index, int itemB_index);    // 点A,点Bとの距離
         int DistanceAxy(int a_index, int x, int y);      // 点A,点(x,y)との距離
         int BagWeight(vector<int> b);                    // バッグの重さ
@@ -101,7 +102,8 @@ namespace hpc {
             }
             Greedy();
             ReplaceBag();
-            ExchangeBag();
+//            ExchangeBag();
+            ExchangeBagFuel();
         }
         SetAction();
         CopyGlovalANS();
@@ -434,6 +436,51 @@ namespace hpc {
                                 new_d2 += DistanceAB(bag[t][i], bag[t2][j+1]);
                             }
                             if ((pre_d1+pre_d1-new_d1-new_d2)>10) {
+                                swap(bag[t][i], bag[t2][j]);
+                            }
+                        }
+                    }
+                }
+            }
+            if (count==0) {
+                break;
+            }
+        }
+    }
+    
+    void nStage::ExchangeBagFuel(){
+        vector<int> baglist(bag[4].size());     // index = bag[4]_index
+        vector<int> can_replace(20);
+        REP(i, bag[4].size()){
+            can_replace[bag[4][i]] = 1;
+        }
+        int count; // ループしても改善点がみつからないとき(count==0)にループを抜ける
+        while (true) {
+            count = 0;
+            REP(t,4){
+                REP(i, bag[t].size()){ // ひとつえらぶ
+                    if (can_replace[bag[t][i]]!=1) {
+                        continue;
+                    }
+                    REP(t2, 4){
+                        REP(j, bag[t2].size()){
+                            if (can_replace[bag[t2][j]]!=1) {
+                                continue;
+                            }
+                            if (ItemWeight(bag[t][i])+BagWeight(bag[t2])-ItemWeight(bag[t2][j]>15) or
+                                ItemWeight(bag[t2][j])+BagWeight(bag[t])-ItemWeight(bag[t][i])>15) {
+                                continue;
+                            }
+                            int old_fuel_cost = 0;
+                            int new_fuel_cost = 0;
+                            REP(k, 4){
+                                old_fuel_cost += FuelCostR(bag[t]);
+                            }
+                            swap(bag[t][i],bag[t2][j]);
+                            REP(k, 4){
+                                new_fuel_cost += FuelCostR(bag[t]);
+                            }
+                            if (new_fuel_cost>old_fuel_cost) {
                                 swap(bag[t][i], bag[t2][j]);
                             }
                         }
@@ -956,8 +1003,8 @@ namespace hpc {
     {
         nStage t;
         t.getStage(aStage);
-        //        t.solve();
-        t.ForceSolve();
+        t.solve();
+//        t.ForceSolve();
         /////////////////////////////////////////////////////////////////
         //cout << "---------- stage no " << stage_n << "---------------" << endl;
         //                for (int i=0; i<5; i++) {
