@@ -12,7 +12,7 @@
 #define REP(i,n)  FOR(i,0,n)
 #define inf 715827882 // INT_MAX/3
 
-#define RANDAMLOOP 15000 // 提出時に変更するループ回数　16385　6385
+#define RANDAMLOOP 14000 // 提出時に変更するループ回数　16385　6385
 
 //uint16_t GetBits(uint16_t x,int p,int n){return ((x>>p)&~(~0x0000<<n));}
 int GetBits(long long x,int p,int n){return ((x>>p)&~(~0x000000<<n));}
@@ -65,6 +65,7 @@ namespace hpc {
         void ReverseRoot(int t);                         // ルート改善　逆順を試す(消費燃料を見る)
         int FuelCostR(vector<int> root);                 // ルートの消費燃料
         void ReplaceBag();                               // 荷物を他のところににうつす
+        void ReplaceBagFuel();                               // 荷物を他のところににうつす+Fuel
         void ExchangeBag();                              // 荷物を他の荷物と交換する
         void ExchangeBagFuel();                              // 荷物を他の荷物と交換する+Fuel
         int DistanceAB(int a_index, int itemB_index);    // 点A,点Bとの距離
@@ -98,12 +99,15 @@ namespace hpc {
             }
         }else{
             if (bag[4].size()>14 && bag[0].size()<=1 && bag[1].size()<=1 && bag[2].size()<=1 && bag[3].size()<=1) {
-                StartBagChange();
+//                StartBagChange();
             }
             Greedy();
-            ReplaceBag();
+//            ReplaceBag();
+            ReplaceBagFuel();
 //            ExchangeBag();
             ExchangeBagFuel();
+            ReplaceBagFuel();
+//            ReplaceBagFuel();
         }
         SetAction();
         CopyGlovalANS();
@@ -380,6 +384,87 @@ namespace hpc {
         }
     }
     
+    void nStage::ReplaceBagFuel(){
+        vector<int> can_replace(20);
+        vector<vector<int>> tmp_bag(4);
+        REP(i, bag[4].size()){
+            can_replace[bag[4][i]] = 1;
+        }
+        REP(i, 4){
+            copy(bag[i].begin(), bag[i].end(), back_inserter(tmp_bag[i]));
+        }
+        ///// ループするならここ
+        int count; // ループしても改善点がみつからないとき(count==0)にループを抜ける
+        int loop_count = 0;
+        int min_fuel = 1000000000;
+        while (true) {
+            count = 0;
+            loop_count++;
+            REP(t,4){
+                REP(i, bag[t].size()){ // ひとつえらぶ
+                    if (can_replace[bag[t][i]]!=1) {
+                        continue;
+                    }
+                    if (bag[t].size()==0) {
+                        continue;
+                    }
+                    int old_fuel_cost = 0;
+                    REP(k, 4){
+                        old_fuel_cost+=FuelCostR(bag[k]);
+                    }
+                    if (min_fuel!=1000000000 && min_fuel!=old_fuel_cost) {
+                        printf("%d,%d\n",min_fuel,old_fuel_cost);
+                    }
+                    int flag = 0;
+                    int min_t2 = 0;
+                    int min_j = 0;
+                    // 挿入先の探索
+                    REP(t2, 4){
+                        if (t==t2) {
+                            continue;
+                        }
+                        // insertに最適な場所を探す
+                        if (ItemWeight(bag[t][i])+BagWeight(bag[t2])>=15) {
+                            continue;
+                        }
+                        REP(j, bag[t2].size()){
+                            if (bag[t].size()==0) {
+                                continue;
+                            }
+                            bag[t2].insert(bag[t2].begin()+j, bag[t][i]);
+                            bag[t].erase(bag[t].begin()+i);
+                            int new_fuel_cost = 0;
+                            REP(k, 4){
+                                new_fuel_cost += FuelCostR(bag[k]);
+                            }
+                            if (new_fuel_cost<old_fuel_cost) {
+                                if (new_fuel_cost< min_fuel) {
+                                    min_fuel = new_fuel_cost;
+                                    min_t2 = t2;
+                                    min_j = j;
+                                    flag = 1;
+                                }
+                            }
+                            REP(l, 4){
+                                bag[l].clear();
+                                copy(tmp_bag[l].begin(),tmp_bag[l].end(),back_inserter(bag[l]));
+                            }
+                        }
+                    }
+                    if (flag == 1) {
+                        count ++;
+                        bag[min_t2].insert(bag[min_t2].begin()+min_j, bag[t][i]);
+                        bag[t].erase(bag[t].begin()+i);
+                        break;
+                    }
+                }
+            }
+            if (count==0) {
+                break;
+            }
+        }
+    }
+    
     void nStage::ExchangeBag(){
         vector<int> baglist(bag[4].size());     // index = bag[4]_index
         vector<int> can_replace(20);
@@ -559,7 +644,7 @@ namespace hpc {
             swap(bag[t][i],bag[t][min_bag_index]);
         }
         Opt2(t);
-        //        Opt2Fuel(t);
+//        Opt2Fuel(t);
         ReverseRoot(t);
         return;
     }
@@ -617,10 +702,14 @@ namespace hpc {
                     reverse(root.begin(), root.end());
                     reverse(root.end()-j-1, root.end()-i1);
                     if (i!=0 || j1!=0) {
+//                        printf("▲");
                         if (FuelCostR(bag[t])>FuelCostR(root)) {
                             bag[t].clear();
                             copy(root.begin(),root.end(),back_inserter(bag[t]));
                             count += 1;
+                            printf("○");
+                        }else{
+                            printf("☓");
                         }
                     }
                 }
@@ -1075,17 +1164,17 @@ namespace hpc {
     /// @param[in] aScore このステージで獲得したスコア。エラーなら0。
     void Answer::Finalize(const Stage& aStage, StageState aStageState, int aScore)
     {
-        //        printf("%03d ",stage_n);
+//                printf("%03d ",stage_n);
         if (aStageState == StageState_Failed) {
             failed_stage_n++;
-            //            printf("☓ 00000000 %08d\n",total_score);
+                        printf("☓ 00000000 %08d\n",total_score);
         }
         else if (aStageState == StageState_TurnLimit) {
             // ターン数オーバーしたかどうかは、ここで検知できます。
         }else{
             successd_stage_n++;
             total_score += n_score;
-            //            printf("○ %08d %08d\n",n_score,total_score);
+//                        printf("○ %08d %08d\n",n_score,total_score);
         }
         stage_n ++;
     }
