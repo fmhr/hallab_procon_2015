@@ -12,7 +12,7 @@
 #define REP(i,n)  FOR(i,0,n)
 #define inf 715827882 // INT_MAX/3
 
-#define RANDAMLOOP 14000 // 提出時に変更するループ回数　16385　6385
+#define RANDAMLOOP 4000 // 提出時に変更するループ回数　16385　6385
 
 //uint16_t GetBits(uint16_t x,int p,int n){return ((x>>p)&~(~0x0000<<n));}
 int GetBits(long long x,int p,int n){return ((x>>p)&~(~0x000000<<n));}
@@ -102,12 +102,9 @@ namespace hpc {
 //                StartBagChange();
             }
             Greedy();
-//            ReplaceBag();
             ReplaceBagFuel();
 //            ExchangeBag();
             ExchangeBagFuel();
-            ReplaceBagFuel();
-//            ReplaceBagFuel();
         }
         SetAction();
         CopyGlovalANS();
@@ -396,30 +393,29 @@ namespace hpc {
         ///// ループするならここ
         int count; // ループしても改善点がみつからないとき(count==0)にループを抜ける
         int loop_count = 0;
-        int min_fuel = 1000000000;
         while (true) {
+            int flag = 0;
             count = 0;
             loop_count++;
             REP(t,4){
+                if (flag==1) {
+                    break;
+                }
                 REP(i, bag[t].size()){ // ひとつえらぶ
+                    if (flag==1) {
+                        break;
+                    }
                     if (can_replace[bag[t][i]]!=1) {
                         continue;
                     }
                     if (bag[t].size()==0) {
                         continue;
                     }
-                    int old_fuel_cost = 0;
-                    REP(k, 4){
-                        old_fuel_cost+=FuelCostR(bag[k]);
-                    }
-                    if (min_fuel!=1000000000 && min_fuel!=old_fuel_cost) {
-                        printf("%d,%d\n",min_fuel,old_fuel_cost);
-                    }
-                    int flag = 0;
-                    int min_t2 = 0;
-                    int min_j = 0;
                     // 挿入先の探索
                     REP(t2, 4){
+                        if (flag==1) {
+                            break;
+                        }
                         if (t==t2) {
                             continue;
                         }
@@ -428,34 +424,41 @@ namespace hpc {
                             continue;
                         }
                         REP(j, bag[t2].size()){
+                            if (flag==1) {
+                                break;
+                            }
                             if (bag[t].size()==0) {
                                 continue;
                             }
+                            // コスト計算
+                            int old_fuel_cost = 0;
+                            REP(k, 4){
+                                old_fuel_cost+=FuelCostR(bag[k]);
+                            }
+                            // 移動
                             bag[t2].insert(bag[t2].begin()+j, bag[t][i]);
                             bag[t].erase(bag[t].begin()+i);
+                            // コスト計算2
                             int new_fuel_cost = 0;
                             REP(k, 4){
                                 new_fuel_cost += FuelCostR(bag[k]);
                             }
+                            // 更新できるか
                             if (new_fuel_cost<old_fuel_cost) {
-                                if (new_fuel_cost< min_fuel) {
-                                    min_fuel = new_fuel_cost;
-                                    min_t2 = t2;
-                                    min_j = j;
-                                    flag = 1;
+//                                printf("%d\n",new_fuel_cost);
+                                REP(l, 4){
+                                    tmp_bag[l].clear();
+                                    copy(bag[l].begin(),bag[l].end(),back_inserter(tmp_bag[l]));
+                                }
+                                count++;
+                                flag = 1;
+                            }else{
+                                REP(l, 4){
+                                    bag[l].clear();
+                                    copy(tmp_bag[l].begin(),tmp_bag[l].end(),back_inserter(bag[l]));
                                 }
                             }
-                            REP(l, 4){
-                                bag[l].clear();
-                                copy(tmp_bag[l].begin(),tmp_bag[l].end(),back_inserter(bag[l]));
-                            }
                         }
-                    }
-                    if (flag == 1) {
-                        count ++;
-                        bag[min_t2].insert(bag[min_t2].begin()+min_j, bag[t][i]);
-                        bag[t].erase(bag[t].begin()+i);
-                        break;
                     }
                 }
             }
@@ -572,9 +575,7 @@ namespace hpc {
                     }
                 }
             }
-            if (count==0) {
-                break;
-            }
+            if (count==0) {break;}
         }
     }
     
@@ -1167,7 +1168,7 @@ namespace hpc {
 //                printf("%03d ",stage_n);
         if (aStageState == StageState_Failed) {
             failed_stage_n++;
-                        printf("☓ 00000000 %08d\n",total_score);
+//                        printf("☓ 00000000 %08d\n",total_score);
         }
         else if (aStageState == StageState_TurnLimit) {
             // ターン数オーバーしたかどうかは、ここで検知できます。
