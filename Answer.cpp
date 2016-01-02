@@ -103,8 +103,18 @@ namespace hpc {
             }
             Greedy();
             ReplaceBagFuel();
-//            ExchangeBag();
             ExchangeBagFuel();
+            REP(t, 4){
+                Opt2Fuel(t);
+            }
+            ReplaceBagFuel();
+            ExchangeBagFuel();
+            REP(t, 4){
+                Opt2Fuel(t);
+            }
+            REP(t, 4){
+                ForceRoot(t);
+            }
         }
         SetAction();
         CopyGlovalANS();
@@ -173,8 +183,11 @@ namespace hpc {
             }
             // 数字に基づいて　配達時間を決定
             delivery_time.clear();
+            long long ii = i;
             for (int j=0; j<int(bag[4].size()); ++j) {
-                delivery_time.push_back(i/Pow(4,j)%4);
+//                delivery_time.push_back(i/Pow(4,j)%4);
+                delivery_time.push_back(ii&3);
+                ii>>=2;
             }
             // 指定した時間のバッグに詰める
             for (int j = 0; j<int(bag[4].size()); ++j) {
@@ -237,12 +250,7 @@ namespace hpc {
             long long ii = i;
             for (int j=0; j<int(bag[4].size()); ++j) {
                 delivery_time.push_back(ii&3);
-//                if(j!=0){ii = ii>>2;};
                 ii>>=2;
-//                delivery_time.push_back((i/Pow(4,j))%4);
-//                delivery_time.push_back((i>>(j*2))%4);
-//                printf("%d ",GetBits(i, int(Pow(4, j)), 3));
-//                delivery_time.push_back(GetBits(i, int(Pow(4, j)), 3));
             }
             //
 //                        REP(i, delivery_time.size()){
@@ -259,12 +267,6 @@ namespace hpc {
             if (overWeight()) {
                 continue;
             }
-            // 回数が多いのでルートぎめは貪欲法でとく
-            //            if (int(bag[4].size())>100) {
-            //                GreedyRoot();
-            //            }else{
-            //                REP(t, 4){ForceRoot(t);}
-            //            }
             REP(t, 4){ForceRoot(t);}
             // 消費燃料の計算
             int total_fuel = 0;
@@ -281,7 +283,6 @@ namespace hpc {
                 }
             }
         }
-        //// ここまで　ランダムループ
         /// max_bagをbagにコピー
         for (int t=0; t<4; ++t) {
             bag[t].clear();
@@ -555,8 +556,8 @@ namespace hpc {
                             if (can_replace[bag[t2][j]]!=1) {
                                 continue;
                             }
-                            if (ItemWeight(bag[t][i])+BagWeight(bag[t2])-ItemWeight(bag[t2][j]>15) or
-                                ItemWeight(bag[t2][j])+BagWeight(bag[t])-ItemWeight(bag[t][i])>15) {
+                            if (BagWeight(bag[t2])+ItemWeight(bag[t][i])-ItemWeight(bag[t2][j]>15) ||
+                                BagWeight(bag[t])+ItemWeight(bag[t2][j])-ItemWeight(bag[t][i])>15) {
                                 continue;
                             }
                             int old_fuel_cost = 0;
@@ -712,9 +713,9 @@ namespace hpc {
                             bag[t].clear();
                             copy(root.begin(),root.end(),back_inserter(bag[t]));
                             count += 1;
-                            printf("○");
+//                            printf("○");
                         }else{
-                            printf("☓");
+//                            printf("☓");
                         }
                     }
                 }
