@@ -12,10 +12,10 @@
 #define REP(i,n)  FOR(i,0,n)
 #define inf 715827882 // INT_MAX/3
 
-#define RANDAMLOOP 4000 // 提出時に変更するループ回数　16385　6385
+#define RANDAMLOOP 14000 // 提出時に変更するループ回数　16385　6385
 
 //uint16_t GetBits(uint16_t x,int p,int n){return ((x>>p)&~(~0x0000<<n));}
-int GetBits(long long x,int p,int n){return ((x>>p)&~(~0x000000<<n));}
+//int GetBits(long long x,int p,int n){return ((x>>p)&~(~0x000000<<n));}
 
 using namespace std;
 
@@ -562,14 +562,18 @@ namespace hpc {
                             int old_fuel_cost = 0;
                             int new_fuel_cost = 0;
                             REP(k, 4){
-                                old_fuel_cost += FuelCostR(bag[t]);
+                                old_fuel_cost += FuelCostR(bag[k]);
                             }
                             swap(bag[t][i],bag[t2][j]);
                             REP(k, 4){
-                                new_fuel_cost += FuelCostR(bag[t]);
+                                new_fuel_cost += FuelCostR(bag[k]);
                             }
+                            // 悪化したら戻す
                             if (new_fuel_cost>old_fuel_cost) {
                                 swap(bag[t][i], bag[t2][j]);
+                            }
+                            if (new_fuel_cost<old_fuel_cost) {
+                                printf("スワップ");
                             }
                         }
                     }
