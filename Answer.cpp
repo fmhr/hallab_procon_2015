@@ -393,12 +393,13 @@ namespace hpc {
         }
         ///// ループするならここ
         int count; // ループしても改善点がみつからないとき(count==0)にループを抜ける
-        int loop_count = 0;
         while (true) {
             int flag = 0;
             count = 0;
-            loop_count++;
             REP(t,4){
+                if (bag[t].size()==0) {
+                    continue;
+                }
                 if (flag==1) {
                     break;
                 }
@@ -407,9 +408,6 @@ namespace hpc {
                         break;
                     }
                     if (can_replace[bag[t][i]]!=1) {
-                        continue;
-                    }
-                    if (bag[t].size()==0) {
                         continue;
                     }
                     // 挿入先の探索
@@ -421,15 +419,12 @@ namespace hpc {
                             continue;
                         }
                         // insertに最適な場所を探す
-                        if (ItemWeight(bag[t][i])+BagWeight(bag[t2])>=15) {
+                        if (ItemWeight(bag[t][i])+BagWeight(bag[t2])>15) {
                             continue;
                         }
                         REP(j, bag[t2].size()){
                             if (flag==1) {
                                 break;
-                            }
-                            if (bag[t].size()==0) {
-                                continue;
                             }
                             // コスト計算
                             int old_fuel_cost = 0;
