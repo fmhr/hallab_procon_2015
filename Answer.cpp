@@ -14,8 +14,6 @@
 
 #define RANDAMLOOP 14000 // 提出時に変更するループ回数　16385　6385
 
-//uint16_t GetBits(uint16_t x,int p,int n){return ((x>>p)&~(~0x0000<<n));}
-//int GetBits(long long x,int p,int n){return ((x>>p)&~(~0x000000<<n));}
 
 using namespace std;
 
@@ -118,6 +116,7 @@ namespace hpc {
         }
         SetAction();
         CopyGlovalANS();
+        StageScore();
     }
     
     
@@ -147,8 +146,8 @@ namespace hpc {
         if (fuel==0) {
             return;
         }
-        n_score = mid_x = aStage->field().width() * aStage->field().height() * aStage->items().count() *10000/fuel;
-        //        printf("%d",n_score);
+        n_score = aStage->field().width() * aStage->field().height() * aStage->items().count() *10000/fuel;
+//        printf("%d",n_score);
     }
     
     
@@ -212,9 +211,7 @@ namespace hpc {
                 min_fuel = total_fuel;
                 for (int k=0; k<4; ++k) {
                     max_bag[k].clear();
-                    for (int l=0; l<int(bag[k].size()); ++l) {
-                        max_bag[k].push_back(bag[k][l]);
-                    }
+                    copy(bag[k].begin(),bag[k].end(),back_inserter(max_bag[k]));
                 }
             }
         }
@@ -568,9 +565,6 @@ namespace hpc {
                             if (new_fuel_cost>old_fuel_cost) {
                                 swap(bag[t][i], bag[t2][j]);
                             }
-                            if (new_fuel_cost<old_fuel_cost) {
-                                printf("スワップ");
-                            }
                         }
                     }
                 }
@@ -589,7 +583,7 @@ namespace hpc {
         for (int i=0; i<int(root.size()); ++i) {
             truck_weight += ItemWeight(root[i]);
         }
-        //        assert(truck_weight<=18);
+                assert(truck_weight<=18);
         int fuel_consumption = 0;
         fuel_consumption += (truck_weight*DistanceAxy(root[0], mid_x, mid_y));
         truck_weight -= ItemWeight(root[0]);
@@ -597,7 +591,7 @@ namespace hpc {
             fuel_consumption += (truck_weight*DistanceAB(root[i], root[i+1]));
             truck_weight -= ItemWeight(root[i+1]);
         }
-        //        assert(truck_weight==3);
+                assert(truck_weight==3);
         fuel_consumption += truck_weight*DistanceAxy(root[int(root.size()-1)], mid_x, mid_y);
         return fuel_consumption;
     }
@@ -746,6 +740,7 @@ namespace hpc {
             for (int j=0; j<int(bag[time].size()); ++j) {
                 bag[time][j] = abcd_best.at(j)-'a';
             }
+            return;
         } else {
             // keyが設定されてない時
             vector<int> min_bag;
@@ -753,6 +748,10 @@ namespace hpc {
             int s_fuel = 0;
             do{
                 s_fuel = FuelCostR(tmp_bag);
+//                REP(i, tmp_bag.size()){
+//                    printf("%d ",tmp_bag[i]);
+//                }
+//                printf("\n");
                 if (min_fuel>s_fuel){
                     min_fuel = s_fuel;
                     min_bag.clear();
@@ -1165,17 +1164,17 @@ namespace hpc {
     /// @param[in] aScore このステージで獲得したスコア。エラーなら0。
     void Answer::Finalize(const Stage& aStage, StageState aStageState, int aScore)
     {
-//                printf("%03d ",stage_n);
+                printf("%03d ",stage_n);
         if (aStageState == StageState_Failed) {
             failed_stage_n++;
-//                        printf("☓ 00000000 %08d\n",total_score);
+                        printf("☓ 00000000 %08d\n",total_score);
         }
         else if (aStageState == StageState_TurnLimit) {
             // ターン数オーバーしたかどうかは、ここで検知できます。
         }else{
             successd_stage_n++;
             total_score += n_score;
-//                        printf("○ %08d %08d\n",n_score,total_score);
+                        printf("○ %08d %08d\n",n_score,total_score);
         }
         stage_n ++;
     }
