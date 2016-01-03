@@ -91,10 +91,10 @@ namespace hpc {
     void nStage::solve(){
         SetBag();
         SetAllMap();
-        if (bag[4].size()==0) {
-            REP(t, 4){
-                ForceRoot(t);
-            }
+        if (bag[4].size()<4) {
+            // 5にするとスコアが下がるがバグが解決しない
+//            printf("貪欲法");
+            ForceForce();
         }else{
             if (bag[4].size()>14 && bag[0].size()<=1 && bag[1].size()<=1 && bag[2].size()<=1 && bag[3].size()<=1) {
 //                StartBagChange();
@@ -153,40 +153,23 @@ namespace hpc {
     
     
     void nStage::Greedy(){
-        vector<vector<int>> init_bag(5);
+        vector<vector<int>> init_bag(4);
         vector<vector<int>> max_bag(4);
-        for (int i = 0; i<5; ++i) {
+        for (int i = 0; i<4; ++i) {
             copy(bag[i].begin(),bag[i].end(),back_inserter(init_bag[i]));
         }
         int min_fuel = inf;
         vector<int> delivery_time;
-        ////////////////////////ランダム回数//// 提出時は 16385
         for (int q=0; q<RANDAMLOOP; ++q) {
-            int i = q;
-            //　荷物(-1)がZ以上のときはランダム
-            int Z = 3;
-            if (int(bag[4].size())>Z) {
-                i=rand()%Pow(4, int(bag[4].size()));
-            }else{
-                // 荷物(-1)が３以下の時、ループが全探索回数をすぎたら終了
-                if (i>Pow(4, int(bag[4].size()))) {
-                    break;
-                }
-            }
             //   bagを初期値に戻す
-            for (int j = 0; j<4; ++j) {
-                bag[j].clear();
-                for (int k = 0; k<int(init_bag[j].size()); ++k) {
-                    bag[j].push_back(init_bag[j][k]);
-                }
+            REP(t, 4){
+                bag[t].clear();
+                copy(init_bag[t].begin(), init_bag[t].end(), back_inserter(bag[t]));
             }
             // 数字に基づいて　配達時間を決定
             delivery_time.clear();
-            long long ii = i;
             for (int j=0; j<int(bag[4].size()); ++j) {
-//                delivery_time.push_back(i/Pow(4,j)%4);
-                delivery_time.push_back(ii&3);
-                ii>>=2;
+                delivery_time.push_back(rand()%4);
             }
             // 指定した時間のバッグに詰める
             for (int j = 0; j<int(bag[4].size()); ++j) {
@@ -197,11 +180,12 @@ namespace hpc {
                 continue;
             }
             // 回数が多いのでルートぎめは貪欲法でとく
-            if (int(bag[4].size())>Z) {
-                GreedyRoot();
-            }else{
-                REP(t, 4){ForceRoot(t);}
-            }
+            GreedyRoot();
+//            ReplaceBagFuel();
+//            ExchangeBagFuel();
+//            REP(t, 4){
+//                Opt2Fuel(t);
+//            }
             // 消費燃料の計算
             int total_fuel = 0;
             for (int t=0; t<4; ++t) {
@@ -237,10 +221,7 @@ namespace hpc {
             //   bagを初期値に戻す
             for (int j = 0; j<4; ++j) {
                 bag[j].clear();
-//                                copy(init_bag[j].begin(),init_bag.end(),back_inserter(bag[j]));   //よくわからないエラー
-                for (int k = 0; k<int(init_bag[j].size()); ++k) {
-                    bag[j].push_back(init_bag[j][k]);
-                }
+                copy(init_bag[j].begin(),init_bag[j].end(),back_inserter(bag[j]));   //よくわからないエラー
             }
             // 数字に基づいて　配達時間を決定
             delivery_time.clear();
@@ -272,11 +253,9 @@ namespace hpc {
             }
             if (total_fuel<min_fuel) {
                 min_fuel = total_fuel;
-                for (int k=0; k<4; ++k) {
+                REP(k, 4){
                     max_bag[k].clear();
-                    for (int l=0; l<int(bag[k].size()); ++l) {
-                        max_bag[k].push_back(bag[k][l]);
-                    }
+                    copy(bag[k].begin(), bag[k].end(), back_inserter(max_bag[k]));
                 }
             }
         }
@@ -745,9 +724,8 @@ namespace hpc {
             // keyが設定されてない時
             vector<int> min_bag;
             int min_fuel = inf;
-            int s_fuel = 0;
             do{
-                s_fuel = FuelCostR(tmp_bag);
+                int s_fuel = FuelCostR(tmp_bag);
 //                REP(i, tmp_bag.size()){
 //                    printf("%d ",tmp_bag[i]);
 //                }
