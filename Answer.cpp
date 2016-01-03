@@ -89,6 +89,7 @@ namespace hpc {
     }
     
     void nStage::solve(){
+//        srand((unsigned int)time(NULL));
         SetBag();
         SetAllMap();
         if (bag[4].size()<4) {
@@ -188,14 +189,15 @@ namespace hpc {
 //            }
             // 消費燃料の計算
             int total_fuel = 0;
-            for (int t=0; t<4; ++t) {
+            REP(t, 4) {
                 total_fuel += FuelCostR(bag[t]);
             }
+            // 更新
             if (total_fuel<min_fuel) {
                 min_fuel = total_fuel;
-                for (int k=0; k<4; ++k) {
-                    max_bag[k].clear();
-                    copy(bag[k].begin(),bag[k].end(),back_inserter(max_bag[k]));
+                REP(t, 4) {
+                    max_bag[t].clear();
+                    copy(bag[t].begin(),bag[t].end(),back_inserter(max_bag[t]));
                 }
             }
         }
