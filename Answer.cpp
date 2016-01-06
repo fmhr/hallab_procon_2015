@@ -387,9 +387,9 @@ namespace hpc {
                     }
                     // 挿入先の探索
                     REP(t2, 4){
-//                        if (t==t2) {
-//                            continue;
-//                        }
+                        if (t==t2) {
+                            continue;
+                        }
                         // insertに最適な場所を探す
                         // 挿入した時に最大積載量を超えないか
                         if (ItemWeight(bag[t][i])+BagWeight(bag[t2])>15) {
@@ -425,6 +425,8 @@ namespace hpc {
                 REP(t, 4){
                     bag[t].clear();
                     copy(m_bag[t].begin(),m_bag[t].end(),back_inserter(bag[t]));
+                    tmp_bag[t].clear();
+                    copy(m_bag[t].begin(),m_bag[t].end(),back_inserter(tmp_bag[t]));
                 }
             }
             if (count==0) {
@@ -509,8 +511,17 @@ namespace hpc {
         }
         int count; // ループしても改善点がみつからないとき(count==0)にループを抜ける
         while (true) {
+            int old_fuel_cost = 0;
+            REP(k, 4){
+                old_fuel_cost += FuelCostR(bag[k]);
+            }
+            int best_t = 99;
+            int best_i = 99;
+            int best_t2 = 99;
+            int best_j = 99;
             count = 0;
             REP(t,4){
+                count=0;
                 REP(i, bag[t].size()){ // ひとつえらぶ
                     if (can_replace[bag[t][i]]!=1) {
                         continue;
@@ -524,28 +535,76 @@ namespace hpc {
                                 BagWeight(bag[t])+ItemWeight(bag[t2][j])-ItemWeight(bag[t][i])>15) {
                                 continue;
                             }
-                            int old_fuel_cost = 0;
-                            int new_fuel_cost = 0;
-                            REP(k, 4){
-                                old_fuel_cost += FuelCostR(bag[k]);
-                            }
                             swap(bag[t][i],bag[t2][j]);
+                            int new_fuel_cost = 0;
                             REP(k, 4){
                                 new_fuel_cost += FuelCostR(bag[k]);
                             }
-                            // 悪化したら戻す
-                            if (new_fuel_cost>old_fuel_cost) {
-                                swap(bag[t][i], bag[t2][j]);
-                            }else{
-//                                printf("○");
+                            if (new_fuel_cost<old_fuel_cost) {
+                                count++;
+                                best_t = t;
+                                best_i = i;
+                                best_t2 = t2;
+                                best_j = j;
                             }
+                            // もどす
+                            swap(bag[t][i], bag[t2][j]);
                         }
                     }
                 }
             }
+            if (count>0) {
+                swap(bag[best_t][best_i], bag[best_t2][best_j]);
+            }
             if (count==0) {break;}
         }
     }
+    
+//    void nStage::ExchangeBagFuel(){
+//        vector<int> baglist(bag[4].size());     // index = bag[4]_index
+//        vector<int> can_replace(20);
+//        REP(i, bag[4].size()){
+//            can_replace[bag[4][i]] = 1;
+//        }
+//        int count; // ループしても改善点がみつからないとき(count==0)にループを抜ける
+//        while (true) {
+//            count = 0;
+//            REP(t,4){
+//                REP(i, bag[t].size()){ // ひとつえらぶ
+//                    if (can_replace[bag[t][i]]!=1) {
+//                        continue;
+//                    }
+//                    REP(t2, 4){
+//                        REP(j, bag[t2].size()){
+//                            if (can_replace[bag[t2][j]]!=1) {
+//                                continue;
+//                            }
+//                            if (BagWeight(bag[t2])+ItemWeight(bag[t][i])-ItemWeight(bag[t2][j]>15) ||
+//                                BagWeight(bag[t])+ItemWeight(bag[t2][j])-ItemWeight(bag[t][i])>15) {
+//                                continue;
+//                            }
+//                            int old_fuel_cost = 0;
+//                            int new_fuel_cost = 0;
+//                            REP(k, 4){
+//                                old_fuel_cost += FuelCostR(bag[k]);
+//                            }
+//                            swap(bag[t][i],bag[t2][j]);
+//                            REP(k, 4){
+//                                new_fuel_cost += FuelCostR(bag[k]);
+//                            }
+//                            // 悪化したら戻す
+//                            if (new_fuel_cost>old_fuel_cost) {
+//                                swap(bag[t][i], bag[t2][j]);
+//                            }else{
+////                                printf("○");
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//            if (count==0) {break;}
+//        }
+//    }
     
     
     //    rootから消費燃料
