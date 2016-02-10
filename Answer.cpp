@@ -494,6 +494,7 @@ namespace hpc {
                             }
                             if ((pre_d1 + pre_d1 - new_d1 - new_d2) > 10) {
                                 swap(bag[t][i], bag[t2][j]);
+                                count++;
                             }
                         }
                     }
