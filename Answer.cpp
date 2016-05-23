@@ -17,8 +17,6 @@
 
 using namespace std;
 
-
-
 namespace hpc {
     int stage_n;                // ステージナンバー
     int successd_stage_n;
@@ -89,16 +87,16 @@ namespace hpc {
     }
     
     void nStage::solve(){
-//        srand((unsigned int)time(NULL));
+        srand((unsigned int)time(NULL));
         SetBag();
         SetAllMap();
         if (bag[4].size()<4) {
             // 5にするとスコアが下がるがバグが解決しない
-//            printf("貪欲法");
+            //            printf("貪欲法");
             ForceForce();
         }else{
             if (bag[4].size()>14 && bag[0].size()<=1 && bag[1].size()<=1 && bag[2].size()<=1 && bag[3].size()<=1) {
-//                StartBagChange();
+                //                StartBagChange();
             }
             Greedy();
             ReplaceBagFuel();
@@ -148,7 +146,7 @@ namespace hpc {
             return;
         }
         n_score = aStage->field().width() * aStage->field().height() * aStage->items().count() *10000/fuel;
-//        printf("%d",n_score);
+        //        printf("%d",n_score);
     }
     
     
@@ -182,11 +180,11 @@ namespace hpc {
             }
             // 回数が多いのでルートぎめは貪欲法でとく
             GreedyRoot();
-//            ReplaceBagFuel();
-//            ExchangeBagFuel();
-//            REP(t, 4){
-//                Opt2Fuel(t);
-//            }
+            //            ReplaceBagFuel();
+            //            ExchangeBagFuel();
+            //            REP(t, 4){
+            //                Opt2Fuel(t);
+            //            }
             // 消費燃料の計算
             int total_fuel = 0;
             REP(t, 4) {
@@ -233,10 +231,10 @@ namespace hpc {
                 ii>>=2;
             }
             //
-//                        REP(i, delivery_time.size()){
-//                            printf("%d ",delivery_time[i]);
-//                        }
-//                        printf("\n");
+            //                        REP(i, delivery_time.size()){
+            //                            printf("%d ",delivery_time[i]);
+            //                        }
+            //                        printf("\n");
             //
             
             // 指定した時間のバッグに詰める
@@ -363,52 +361,41 @@ namespace hpc {
     void nStage::ReplaceBagFuel(){
         vector<int> can_replace(20);
         vector<vector<int>> tmp_bag(4);
+        vector<vector<int>> m_bag(4);
         REP(i, bag[4].size()){
             can_replace[bag[4][i]] = 1;
         }
         REP(i, 4){
             copy(bag[i].begin(), bag[i].end(), back_inserter(tmp_bag[i]));
+            copy(bag[i].begin(), bag[i].end(), back_inserter(m_bag[i]));
+        }
+        int m_fuel = 0;
+        REP(k, 4){
+            m_fuel+=FuelCostR(bag[k]);
         }
         ///// ループするならここ
         int count; // ループしても改善点がみつからないとき(count==0)にループを抜ける
         while (true) {
-            int flag = 0;
             count = 0;
             REP(t,4){
                 if (bag[t].size()==0) {
                     continue;
                 }
-                if (flag==1) {
-                    break;
-                }
-                REP(i, bag[t].size()){ // ひとつえらぶ
-                    if (flag==1) {
-                        break;
-                    }
+                REP(i, bag[t].size()){
                     if (can_replace[bag[t][i]]!=1) {
                         continue;
                     }
                     // 挿入先の探索
                     REP(t2, 4){
-                        if (flag==1) {
-                            break;
-                        }
                         if (t==t2) {
                             continue;
                         }
                         // insertに最適な場所を探す
+                        // 挿入した時に最大積載量を超えないか
                         if (ItemWeight(bag[t][i])+BagWeight(bag[t2])>15) {
                             continue;
                         }
                         REP(j, bag[t2].size()){
-                            if (flag==1) {
-                                break;
-                            }
-                            // コスト計算
-                            int old_fuel_cost = 0;
-                            REP(k, 4){
-                                old_fuel_cost+=FuelCostR(bag[k]);
-                            }
                             // 移動
                             bag[t2].insert(bag[t2].begin()+j, bag[t][i]);
                             bag[t].erase(bag[t].begin()+i);
@@ -418,22 +405,28 @@ namespace hpc {
                                 new_fuel_cost += FuelCostR(bag[k]);
                             }
                             // 更新できるか
-                            if (new_fuel_cost<old_fuel_cost) {
-//                                printf("%d\n",new_fuel_cost);
+                            if (new_fuel_cost<m_fuel) {
+                                m_fuel = new_fuel_cost;
                                 REP(l, 4){
-                                    tmp_bag[l].clear();
-                                    copy(bag[l].begin(),bag[l].end(),back_inserter(tmp_bag[l]));
+                                    m_bag[l].clear();
+                                    copy(bag[l].begin(),bag[l].end(),back_inserter(m_bag[l]));
                                 }
                                 count++;
-                                flag = 1;
-                            }else{
-                                REP(l, 4){
-                                    bag[l].clear();
-                                    copy(tmp_bag[l].begin(),tmp_bag[l].end(),back_inserter(bag[l]));
-                                }
+                            }
+                            REP(l, 4){
+                                bag[l].clear();
+                                copy(tmp_bag[l].begin(),tmp_bag[l].end(),back_inserter(bag[l]));
                             }
                         }
                     }
+                }
+            }
+            if (count>0) {
+                REP(t, 4){
+                    bag[t].clear();
+                    copy(m_bag[t].begin(),m_bag[t].end(),back_inserter(bag[t]));
+                    tmp_bag[t].clear();
+                    copy(m_bag[t].begin(),m_bag[t].end(),back_inserter(tmp_bag[t]));
                 }
             }
             if (count==0) {
@@ -518,8 +511,17 @@ namespace hpc {
         }
         int count; // ループしても改善点がみつからないとき(count==0)にループを抜ける
         while (true) {
+            int old_fuel_cost = 0;
+            REP(k, 4){
+                old_fuel_cost += FuelCostR(bag[k]);
+            }
+            int best_t = 99;
+            int best_i = 99;
+            int best_t2 = 99;
+            int best_j = 99;
             count = 0;
             REP(t,4){
+                count=0;
                 REP(i, bag[t].size()){ // ひとつえらぶ
                     if (can_replace[bag[t][i]]!=1) {
                         continue;
@@ -533,26 +535,76 @@ namespace hpc {
                                 BagWeight(bag[t])+ItemWeight(bag[t2][j])-ItemWeight(bag[t][i])>15) {
                                 continue;
                             }
-                            int old_fuel_cost = 0;
-                            int new_fuel_cost = 0;
-                            REP(k, 4){
-                                old_fuel_cost += FuelCostR(bag[k]);
-                            }
                             swap(bag[t][i],bag[t2][j]);
+                            int new_fuel_cost = 0;
                             REP(k, 4){
                                 new_fuel_cost += FuelCostR(bag[k]);
                             }
-                            // 悪化したら戻す
-                            if (new_fuel_cost>old_fuel_cost) {
-                                swap(bag[t][i], bag[t2][j]);
+                            if (new_fuel_cost<old_fuel_cost) {
+                                count++;
+                                best_t = t;
+                                best_i = i;
+                                best_t2 = t2;
+                                best_j = j;
                             }
+                            // もどす
+                            swap(bag[t][i], bag[t2][j]);
                         }
                     }
                 }
             }
+            if (count>0) {
+                swap(bag[best_t][best_i], bag[best_t2][best_j]);
+            }
             if (count==0) {break;}
         }
     }
+    
+    //    void nStage::ExchangeBagFuel(){
+    //        vector<int> baglist(bag[4].size());     // index = bag[4]_index
+    //        vector<int> can_replace(20);
+    //        REP(i, bag[4].size()){
+    //            can_replace[bag[4][i]] = 1;
+    //        }
+    //        int count; // ループしても改善点がみつからないとき(count==0)にループを抜ける
+    //        while (true) {
+    //            count = 0;
+    //            REP(t,4){
+    //                REP(i, bag[t].size()){ // ひとつえらぶ
+    //                    if (can_replace[bag[t][i]]!=1) {
+    //                        continue;
+    //                    }
+    //                    REP(t2, 4){
+    //                        REP(j, bag[t2].size()){
+    //                            if (can_replace[bag[t2][j]]!=1) {
+    //                                continue;
+    //                            }
+    //                            if (BagWeight(bag[t2])+ItemWeight(bag[t][i])-ItemWeight(bag[t2][j]>15) ||
+    //                                BagWeight(bag[t])+ItemWeight(bag[t2][j])-ItemWeight(bag[t][i])>15) {
+    //                                continue;
+    //                            }
+    //                            int old_fuel_cost = 0;
+    //                            int new_fuel_cost = 0;
+    //                            REP(k, 4){
+    //                                old_fuel_cost += FuelCostR(bag[k]);
+    //                            }
+    //                            swap(bag[t][i],bag[t2][j]);
+    //                            REP(k, 4){
+    //                                new_fuel_cost += FuelCostR(bag[k]);
+    //                            }
+    //                            // 悪化したら戻す
+    //                            if (new_fuel_cost>old_fuel_cost) {
+    //                                swap(bag[t][i], bag[t2][j]);
+    //                            }else{
+    ////                                printf("○");
+    //                            }
+    //                        }
+    //                    }
+    //                }
+    //            }
+    //            if (count==0) {break;}
+    //        }
+    //    }
     
     
     //    rootから消費燃料
@@ -564,7 +616,7 @@ namespace hpc {
         for (int i=0; i<int(root.size()); ++i) {
             truck_weight += ItemWeight(root[i]);
         }
-                assert(truck_weight<=18);
+        //                assert(truck_weight<=18);
         int fuel_consumption = 0;
         fuel_consumption += (truck_weight*DistanceAxy(root[0], mid_x, mid_y));
         truck_weight -= ItemWeight(root[0]);
@@ -572,7 +624,7 @@ namespace hpc {
             fuel_consumption += (truck_weight*DistanceAB(root[i], root[i+1]));
             truck_weight -= ItemWeight(root[i+1]);
         }
-                assert(truck_weight==3);
+        //                assert(truck_weight==3);
         fuel_consumption += truck_weight*DistanceAxy(root[int(root.size()-1)], mid_x, mid_y);
         return fuel_consumption;
     }
@@ -620,7 +672,7 @@ namespace hpc {
             swap(bag[t][i],bag[t][min_bag_index]);
         }
         Opt2(t);
-//        Opt2Fuel(t);
+        //        Opt2Fuel(t);
         ReverseRoot(t);
         return;
     }
@@ -678,14 +730,14 @@ namespace hpc {
                     reverse(root.begin(), root.end());
                     reverse(root.end()-j-1, root.end()-i1);
                     if (i!=0 || j1!=0) {
-//                        printf("▲");
+                        //                        printf("▲");
                         if (FuelCostR(bag[t])>FuelCostR(root)) {
                             bag[t].clear();
                             copy(root.begin(),root.end(),back_inserter(bag[t]));
                             count += 1;
-//                            printf("○");
+                            //                            printf("○");
                         }else{
-//                            printf("☓");
+                            //                            printf("☓");
                         }
                     }
                 }
@@ -728,10 +780,10 @@ namespace hpc {
             int min_fuel = inf;
             do{
                 int s_fuel = FuelCostR(tmp_bag);
-//                REP(i, tmp_bag.size()){
-//                    printf("%d ",tmp_bag[i]);
-//                }
-//                printf("\n");
+                //                REP(i, tmp_bag.size()){
+                //                    printf("%d ",tmp_bag[i]);
+                //                }
+                //                printf("\n");
                 if (min_fuel>s_fuel){
                     min_fuel = s_fuel;
                     min_bag.clear();
@@ -1073,7 +1125,7 @@ namespace hpc {
         nStage t;
         t.getStage(aStage);
         t.solve();
-//        t.ForceSolve();
+        //        t.ForceSolve();
         /////////////////////////////////////////////////////////////////
         //cout << "---------- stage no " << stage_n << "---------------" << endl;
         //                for (int i=0; i<5; i++) {
@@ -1144,17 +1196,17 @@ namespace hpc {
     /// @param[in] aScore このステージで獲得したスコア。エラーなら0。
     void Answer::Finalize(const Stage& aStage, StageState aStageState, int aScore)
     {
-                printf("%03d ",stage_n);
+        //                printf("%03d ",stage_n);
         if (aStageState == StageState_Failed) {
             failed_stage_n++;
-                        printf("☓ 00000000 %08d\n",total_score);
+            //                        printf("☓ 00000000 %08d\n",total_score);
         }
         else if (aStageState == StageState_TurnLimit) {
             // ターン数オーバーしたかどうかは、ここで検知できます。
         }else{
             successd_stage_n++;
             total_score += n_score;
-                        printf("○ %08d %08d\n",n_score,total_score);
+            //                        printf("○ %08d %08d\n",n_score,total_score);
         }
         stage_n ++;
     }
